@@ -630,7 +630,7 @@ function showFatalError(err) {
   if (treeCanvas) {
     treeCanvas.textContent = i18n[lang]?.loadFail || "Error";
   }
-  setTreeStatus(i18n[lang]?.loadFail || "Error", true);
+  setTreeStatus(lastDataError || i18n[lang]?.loadFail || "Error", true);
 }
 
 function closeFatalError() {
@@ -1189,11 +1189,16 @@ async function recoverEmptyViewAsync() {
     // ignore storage errors
   }
   try {
-    const res = await fetch(`./data.json?ts=${Date.now()}`, { cache: "no-store" });
-    const data = await res.json();
+    const { data } = await fetchDataJson(getDataUrlCandidates());
     treeData = data;
     storeData();
     initFromData(data);
+    buildLayout();
+    applyViewMode();
+    renderScene();
+    applyZoom();
+    updateStats();
+    ensureTreeVisible();
   } catch {
     // ignore fetch errors
   }
@@ -1243,26 +1248,21 @@ function initApp() {
     }
   }
 
-  const base = new URL(".", window.location.href);
-  const dataUrl = new URL("data.json", base).toString();
-  updateDebugOverlay(`Fetching ${dataUrl}...`);
+  const dataUrls = getDataUrlCandidates();
+  updateDebugOverlay(`Fetching ${dataUrls[0] || "data.json"}...`);
 
-  loadData(dataUrl, stored, t).catch((err) => {
+  loadData(dataUrls, stored, t).catch((err) => {
     showFatalError(err);
     updateDebugOverlay(`ERROR: ${formatError(err)}`);
   });
 }
 
-async function loadData(dataUrl, stored, t) {
-  const res = await fetch(`${dataUrl}?ts=${Date.now()}`, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`HTTP ${res.status} ${res.statusText} (${dataUrl})`);
-  }
-  const data = await res.json();
+async function loadData(dataUrls, stored, t) {
+  const { data, url } = await fetchDataJson(dataUrls);
   if (!Array.isArray(data?.people) || !Array.isArray(data?.unions)) {
-    throw new Error("Invalid data.json schema");
+    throw new Error(`Invalid data.json schema (${url})`);
   }
-  treeCanvas.textContent = "";
+  if (treeCanvas) treeCanvas.textContent = "";
   if (!stored) {
     treeData = data;
     storeData();
@@ -1364,6 +1364,45 @@ function loadStoredData() {
 
 function storeData() {
   // no-op: view-only mode, always use data.json
+}
+
+function getDataUrlCandidates() {
+  const candidates = [];
+  const push = (url) => {
+    if (!url) return;
+    if (!candidates.includes(url)) candidates.push(url);
+  };
+  push("./data.json");
+  try {
+    push(new URL("data.json", window.location.href).toString());
+  } catch {
+    // ignore
+  }
+  try {
+    const basePath = `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, "/")}`;
+    push(new URL("data.json", basePath).toString());
+  } catch {
+    // ignore
+  }
+  return candidates;
+}
+
+async function fetchDataJson(candidates) {
+  let lastErr = null;
+  for (const url of candidates) {
+    try {
+      const cacheBuster = url.includes("?") ? `&ts=${Date.now()}` : `?ts=${Date.now()}`;
+      const res = await fetch(`${url}${cacheBuster}`, { cache: "no-store" });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText} (${url})`);
+      }
+      const data = await res.json();
+      return { data, url };
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error("Failed to load data.json");
 }
 
 function buildLayout() {
