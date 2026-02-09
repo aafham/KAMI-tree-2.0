@@ -137,6 +137,8 @@ const searchOverlayInput = document.getElementById("search-overlay-input");
 const searchOverlayResults = document.getElementById("search-overlay-results");
 const searchOverlayClose = document.getElementById("search-overlay-close");
 const debugOverlay = document.getElementById("debug-overlay");
+const fatalError = document.getElementById("fatalError");
+const fatalReload = document.getElementById("fatalReload");
 
 function on(el, event, handler, options) {
   if (!el) return;
@@ -592,6 +594,29 @@ function updateDebugOverlay(info) {
   if (!debugOverlay || !debugMode) return;
   debugOverlay.hidden = false;
   debugOverlay.textContent = info;
+}
+
+function formatError(err) {
+  if (!err) return "Unknown error";
+  if (typeof err === "string") return err;
+  const message = err.message || String(err);
+  const stack = err.stack ? `\n${err.stack}` : "";
+  return `${message}${stack}`;
+}
+
+function showFatalError(err) {
+  console.error(err);
+  lastDataError = formatError(err);
+  if (fatalError) {
+    const msg = fatalError.querySelector(".msg");
+    if (msg) msg.textContent = lastDataError;
+    fatalError.hidden = false;
+    fatalError.classList.add("show");
+  }
+  if (treeCanvas) {
+    treeCanvas.textContent = i18n[lang]?.loadFail || "Error";
+  }
+  setTreeStatus(i18n[lang]?.loadFail || "Error", true);
 }
 
 async function clearSiteCache() {
@@ -1196,59 +1221,75 @@ function initApp() {
     }
   }
 
-  const dataUrl = `./data.json?ts=${Date.now()}`;
+  const base = new URL(".", window.location.href);
+  const dataUrl = new URL("data.json", base).toString();
   updateDebugOverlay(`Fetching ${dataUrl}...`);
-  fetch(dataUrl, { cache: "no-store" })
-    .then((res) => {
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText} (${dataUrl})`);
-      }
-      return res.json();
-    })
-    .then((data) => {
-      treeCanvas.textContent = "";
-      if (!stored) {
-        treeData = data;
-        storeData();
-        stored = data;
-        initFromData(data);
-      }
-      if (data?.dataVersion && stored?.dataVersion === data.dataVersion) {
-        return;
-      }
-      treeData = data;
-      storeData();
-      initFromData(data);
 
-      buildLayout();
-      applyViewMode();
-      renderScene();
-      applyZoom();
-      updateStats();
-      ensureTreeVisible();
-      if (treeCanvas && treeCanvas.children.length === 0) {
-        recoverEmptyView();
-      }
-
-      updateDebugOverlay(`OK | people: ${data.people?.length || 0} | unions: ${data.unions?.length || 0}`);
-    })
-    .catch((err) => {
-      lastDataError = String(err);
-      if (!stored) {
-        treeCanvas.textContent = t.loadFail;
-        setTreeStatus(t.loadFail, true);
-      }
-      console.error("Failed to load data.json", err);
-      console.log("Current location:", window.location.href);
-      updateDebugOverlay(`ERROR: ${lastDataError}`);
-    });
+  loadData(dataUrl, stored, t).catch((err) => {
+    showFatalError(err);
+    updateDebugOverlay(`ERROR: ${formatError(err)}`);
+  });
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
+async function loadData(dataUrl, stored, t) {
+  const res = await fetch(`${dataUrl}?ts=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} ${res.statusText} (${dataUrl})`);
+  }
+  const data = await res.json();
+  if (!Array.isArray(data?.people) || !Array.isArray(data?.unions)) {
+    throw new Error("Invalid data.json schema");
+  }
+  treeCanvas.textContent = "";
+  if (!stored) {
+    treeData = data;
+    storeData();
+    stored = data;
+    initFromData(data);
+  }
+  if (data?.dataVersion && stored?.dataVersion === data.dataVersion) {
+    return;
+  }
+  treeData = data;
+  storeData();
+  initFromData(data);
+
+  buildLayout();
+  applyViewMode();
+  renderScene();
+  applyZoom();
+  updateStats();
+  ensureTreeVisible();
+  if (treeCanvas && treeCanvas.children.length === 0) {
+    treeCanvas.textContent = "Tiada data untuk dipaparkan. Sila semak data.json";
+    setTreeStatus("Tiada data untuk dipaparkan. Sila semak data.json", true);
+    return;
+  }
+
+  console.log("[OK] data loaded:", data.people.length, data.unions.length);
+  console.log("[OK] nodesList:", nodesList.length, "baseSize:", baseSize);
+  updateDebugOverlay(`OK | people: ${data.people?.length || 0} | unions: ${data.unions?.length || 0}`);
 }
+
+if (fatalReload) {
+  fatalReload.addEventListener("click", () => window.location.reload());
+}
+
+window.addEventListener("error", (event) => {
+  showFatalError(event.error || event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  showFatalError(event.reason || "Unhandled promise rejection");
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  try {
+    initApp();
+  } catch (err) {
+    showFatalError(err);
+  }
+});
 
 function loadPrefs() {
   try {
