@@ -183,6 +183,7 @@ const STORAGE_KEY = "familyTreePrefs";
 const DATA_KEY = "familyTreeData";
 const FORCE_RESET = false;
 const MOBILE_CONTROLS_KEY = "ft_controls_collapsed";
+const APP_VERSION = "2026-02-10";
 
 const isMobileView = () => window.matchMedia("(max-width: 720px)").matches;
 
@@ -1208,6 +1209,7 @@ function initApp() {
   const params = new URLSearchParams(window.location.search);
   debugMode = params.get("debug") === "1";
   if (debugMode) updateDebugOverlay("Booting...");
+  console.info("[KAMI-tree] version", APP_VERSION);
 
   applyCardScale();
   applyThemePreset();
@@ -4522,8 +4524,8 @@ function applyLanguage() {
   const { minimapHandle, minimapHint } = getMinimapEls();
   if (minimapHandle) minimapHandle.textContent = t.minimapShow;
   if (minimapHint) minimapHint.textContent = t.minimapHint;
-  updateViewInfoBar();
-  updateTreeViewButtons();
+  if (typeof updateViewInfoBar === "function") updateViewInfoBar();
+  if (typeof updateTreeViewButtons === "function") updateTreeViewButtons();
 }
 
 function minimapScrollTo(clientX, clientY) {
