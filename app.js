@@ -113,6 +113,8 @@ const viewInfo = document.getElementById("view-info");
 const viewInfoText = document.getElementById("view-info-text");
 const viewInfoShowAll = document.getElementById("view-info-show-all");
 const viewInfoFit = document.getElementById("view-info-fit");
+const viewInfoShowAllBtn = document.getElementById("view-info-show-all");
+const viewInfoFitBtn = document.getElementById("view-info-fit");
 const resetFocusBtn = document.getElementById("reset-focus");
 const quickJumpBtn = document.getElementById("quick-jump");
 const storyFocusActions = document.getElementById("story-focus-actions");
@@ -134,6 +136,7 @@ const searchOverlay = document.getElementById("search-overlay");
 const searchOverlayInput = document.getElementById("search-overlay-input");
 const searchOverlayResults = document.getElementById("search-overlay-results");
 const searchOverlayClose = document.getElementById("search-overlay-close");
+const debugOverlay = document.getElementById("debug-overlay");
 
 function on(el, event, handler, options) {
   if (!el) return;
@@ -220,6 +223,8 @@ let focusIncludeGrandparents = false;
 let searchActiveIndex = -1;
 let hideTip = false;
 let hasDataErrors = false;
+let debugMode = false;
+let lastDataError = "";
 const prefs = loadPrefs();
 const i18n = {
   ms: {
@@ -581,6 +586,12 @@ function flashTreeStatus(message) {
   statusTimer = setTimeout(() => {
     setTreeStatus("");
   }, 2500);
+}
+
+function updateDebugOverlay(info) {
+  if (!debugOverlay || !debugMode) return;
+  debugOverlay.hidden = false;
+  debugOverlay.textContent = info;
 }
 
 async function clearSiteCache() {
@@ -1132,7 +1143,7 @@ async function recoverEmptyViewAsync() {
     // ignore storage errors
   }
   try {
-    const res = await fetch(`data.json?ts=${Date.now()}`);
+    const res = await fetch(`./data.json?ts=${Date.now()}`, { cache: "no-store" });
     const data = await res.json();
     treeData = data;
     storeData();
@@ -1142,68 +1153,102 @@ async function recoverEmptyViewAsync() {
   }
 }
 
-let stored = loadStoredData();
-if (FORCE_RESET) {
-  localStorage.removeItem(DATA_KEY);
-  localStorage.removeItem(STORAGE_KEY);
-  stored = null;
-  hiddenGenerations.clear();
-  branchFilterValue = "all";
-}
-if (stored) {
-  const errors = validateTreeData(stored);
-  if (errors.length === 0 && stored.people.length > 0) {
-    const ok = initFromData(stored);
-    if (forceFreshData) {
-      localStorage.removeItem(DATA_KEY);
-      stored = null;
-      forceFreshData = false;
-    }
-    if (!ok) {
-      localStorage.removeItem(DATA_KEY);
-      stored = null;
-    }
-  } else {
+function initApp() {
+  const params = new URLSearchParams(window.location.search);
+  debugMode = params.get("debug") === "1";
+  if (debugMode) updateDebugOverlay("Booting...");
+
+  applyCardScale();
+  applyThemePreset();
+  applyDetailsVisibility();
+  applyMinimapState();
+  applyDragToPanState();
+  applyLanguage();
+  updateViewSwitch();
+  updateTimelineMoreState(false);
+
+  const t = i18n[lang] || i18n.ms;
+  setTreeStatus(t.loading);
+
+  let stored = loadStoredData();
+  if (FORCE_RESET) {
+    localStorage.removeItem(DATA_KEY);
+    localStorage.removeItem(STORAGE_KEY);
     stored = null;
+    hiddenGenerations.clear();
+    branchFilterValue = "all";
   }
-}
+  if (stored) {
+    const errors = validateTreeData(stored);
+    if (errors.length === 0 && stored.people.length > 0) {
+      const ok = initFromData(stored);
+      if (forceFreshData) {
+        localStorage.removeItem(DATA_KEY);
+        stored = null;
+        forceFreshData = false;
+      }
+      if (!ok) {
+        localStorage.removeItem(DATA_KEY);
+        stored = null;
+      }
+    } else {
+      stored = null;
+    }
+  }
 
-if (!treeCanvas || !treeCanvas.children.length) {
-  setTreeStatus("");
-}
-
-fetch(`data.json?v=${Date.now()}`, { cache: "no-store" })
-  .then((res) => res.json())
-  .then((data) => {
-    treeCanvas.textContent = "";
-    if (!stored) {
+  const dataUrl = `./data.json?ts=${Date.now()}`;
+  updateDebugOverlay(`Fetching ${dataUrl}...`);
+  fetch(dataUrl, { cache: "no-store" })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText} (${dataUrl})`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      treeCanvas.textContent = "";
+      if (!stored) {
+        treeData = data;
+        storeData();
+        stored = data;
+        initFromData(data);
+      }
+      if (data?.dataVersion && stored?.dataVersion === data.dataVersion) {
+        return;
+      }
       treeData = data;
       storeData();
-      stored = data;
       initFromData(data);
-    }
-    ensureTreeVisible();
-    if (!treeCanvas.children.length) {
-      treeData = data;
-      storeData();
-      initFromData(data);
-      return;
-    }
-    if (data?.dataVersion && stored.dataVersion === data.dataVersion) {
-      return;
-    }
-    treeData = data;
-    storeData();
-    initFromData(data);
-  })
-  .catch((err) => {
-    if (!stored) {
-      const t = i18n[lang] || i18n.ms;
-      treeCanvas.textContent = t.loadFail;
-      setTreeStatus(t.loadFail, true);
-    }
-    console.error(err);
-  });
+
+      buildLayout();
+      applyViewMode();
+      renderScene();
+      applyZoom();
+      updateStats();
+      ensureTreeVisible();
+      if (treeCanvas && treeCanvas.children.length === 0) {
+        recoverEmptyView();
+      }
+
+      updateDebugOverlay(`OK | people: ${data.people?.length || 0} | unions: ${data.unions?.length || 0}`);
+    })
+    .catch((err) => {
+      lastDataError = String(err);
+      if (!stored) {
+        treeCanvas.textContent = t.loadFail;
+        setTreeStatus(t.loadFail, true);
+      }
+      console.error("Failed to load data.json", err);
+      console.log("Current location:", window.location.href);
+      updateDebugOverlay(`ERROR: ${lastDataError}`);
+    });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initApp);
+} else {
+  initApp();
+}
 
 function loadPrefs() {
   try {
