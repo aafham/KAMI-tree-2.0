@@ -147,15 +147,16 @@
       </div>
       <button id="quick-jump" class="quick-jump" type="button" data-i18n="quickJump">Search / Jump</button>
       <div class="content-grid">
-        <div class="tree-wrap" id="tree-wrap">
-          <div id="view-info" class="view-info" hidden>
-            <div id="view-info-text" class="view-info-text"></div>
-            <div class="view-info-actions">
-              <button id="view-info-show-all" class="btn small" type="button">Show All</button>
-              <button id="view-info-fit" class="btn ghost small" type="button" data-i18n="fit">Fit Skrin</button>
+          <div class="tree-wrap" id="tree-wrap">
+            <div id="view-info" class="view-info" hidden>
+              <div id="view-info-text" class="view-info-text"></div>
+              <div class="view-info-actions">
+                <button id="view-info-show-all" class="btn small" type="button">Show All</button>
+                <button id="reset-focus" class="btn ghost small" type="button">Reset Focus</button>
+                <button id="view-info-fit" class="btn ghost small" type="button" data-i18n="fit">Fit Skrin</button>
+              </div>
             </div>
-          </div>
-          <div class="tree-zoom" id="tree-zoom">
+            <div class="tree-zoom" id="tree-zoom">
             <svg class="tree-lines" id="tree-lines" xmlns="http://www.w3.org/2000/svg"></svg>
             <div class="tree-canvas" id="tree-canvas" aria-live="polite"></div>
           </div>
@@ -182,6 +183,7 @@
               <button id="expand-children" class="btn ghost small" type="button" data-i18n="expandChildren">Expand children</button>
               <button id="expand-spouses" class="btn ghost small" type="button" data-i18n="expandSpouses">Expand spouses</button>
               <button id="expand-siblings" class="btn ghost small" type="button" data-i18n="expandSiblings">Expand siblings</button>
+              <button id="path-toggle" class="btn ghost small" type="button" data-i18n="pathOff">Show lineage</button>
             </div>
           </div>
           <form class="story-edit" id="panel-edit-form" hidden>
@@ -274,6 +276,41 @@
     <div class="modal-card" role="dialog" aria-modal="true">
       <button class="modal-close" data-close="true" data-i18n="modalClose">Tutup</button>
       <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div class="overlay-tip" id="tip-overlay" aria-hidden="true">
+    <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="tip-title">
+      <h3 id="tip-title">Tip</h3>
+      <p id="tip-text">Tip: Gunakan Carian untuk lompat ke nama. Mode Fokus untuk mudah faham. Tekan ‘Tunjuk Semua’ jika nak overview.</p>
+      <label class="tip-check">
+        <input id="tip-hide" type="checkbox" />
+        <span id="tip-hide-label">Jangan tunjuk lagi</span>
+      </label>
+      <div class="overlay-actions">
+        <button id="tip-close" class="btn" type="button">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay-modal" id="showall-modal" aria-hidden="true">
+    <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="showall-title">
+      <h3 id="showall-title">Paparan penuh mungkin berat untuk telefon. Teruskan?</h3>
+      <div class="overlay-actions">
+        <button id="showall-continue" class="btn" type="button">Continue</button>
+        <button id="showall-stay" class="btn ghost" type="button">Stay in Focus</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay-search" id="search-overlay" aria-hidden="true">
+    <div class="overlay-card overlay-search-card" role="dialog" aria-modal="true" aria-labelledby="search-overlay-title">
+      <div class="overlay-search-head">
+        <h3 id="search-overlay-title" data-i18n="quickJump">Search / Jump</h3>
+        <button id="search-overlay-close" class="btn ghost small" type="button">×</button>
+      </div>
+      <input id="search-overlay-input" class="input" type="search" placeholder="Cari nama ahli keluarga..." />
+      <div id="search-overlay-results" class="search-results overlay-results" aria-live="polite"></div>
     </div>
   </div>
 
