@@ -105,7 +105,21 @@ const viewTimelineBtn = document.getElementById("view-timeline-btn");
 const timelineMoreBtn = document.getElementById("timeline-more-btn");
 const timelineMorePanel = document.getElementById("timeline-more-panel");
 const timelineActiveFilters = document.getElementById("timeline-active-filters");
-
+const focusViewBtn = document.getElementById("focus-view");
+const showAllBtn = document.getElementById("show-all");
+const mobileFocusViewBtn = document.getElementById("m-focus-view");
+const mobileShowAllBtn = document.getElementById("m-show-all");
+const viewInfo = document.getElementById("view-info");
+const viewInfoText = document.getElementById("view-info-text");
+const viewInfoShowAll = document.getElementById("view-info-show-all");
+const viewInfoFit = document.getElementById("view-info-fit");
+const quickJumpBtn = document.getElementById("quick-jump");
+const storyFocusActions = document.getElementById("story-focus-actions");
+const storyBreadcrumb = document.getElementById("story-breadcrumb");
+const expandParentsBtn = document.getElementById("expand-parents");
+const expandChildrenBtn = document.getElementById("expand-children");
+const expandSpousesBtn = document.getElementById("expand-spouses");
+const expandSiblingsBtn = document.getElementById("expand-siblings");
 
 function on(el, event, handler, options) {
   if (!el) return;
@@ -185,6 +199,11 @@ let timelineFilters = {
 };
 let timelineMoreOpen = false;
 
+// Focus/full tree view state.
+let treeView = "focus";
+let visiblePeopleIds = new Set();
+let focusIncludeGrandparents = false;
+let searchActiveIndex = -1;
 const prefs = loadPrefs();
 const i18n = {
   ms: {
@@ -195,7 +214,20 @@ const i18n = {
     searchGo: "Cari & Fokus",
     viewTimeline: "Lihat Timeline",
     viewTree: "Lihat Tree",
-    compactOn: "Mode Penuh",
+    focusView: "Paparan Fokus",
+    showAll: "Tunjuk Semua",
+    viewInfoFocus: "Anda sedang dalam Mode Fokus ({shown} dipapar / Jumlah {total}).",
+    viewInfoShowAll: "Tunjuk Semua ({total} orang)",
+    fullTreeEnabled: "Paparan penuh diaktifkan. Guna carian untuk lompat.",
+    openAll: "Buka Semua",
+    collapseG2: "Lipat ke G2",
+    expandLabel: "Luaskan",
+    expandParents: "Luaskan ibu bapa",
+    expandChildren: "Luaskan anak",
+    expandSpouses: "Luaskan pasangan",
+    expandSiblings: "Luaskan adik-beradik",
+    quickJump: "Cari / Lompat",
+    lineageLabel: "Garis keturunan",    compactOn: "Mode Penuh",
     compactOff: "Mode Ringkas",
     fit: "Fit Skrin",
     zoomIn: "Zoom +",
@@ -337,7 +369,20 @@ const i18n = {
     searchGo: "Search & Focus",
     viewTimeline: "Timeline View",
     viewTree: "Tree View",
-    compactOn: "Full Mode",
+    focusView: "Focus View",
+    showAll: "Show All",
+    viewInfoFocus: "You''re viewing Focus Mode ({shown} shown / Total {total}).",
+    viewInfoShowAll: "Show All ({total} people)",
+    fullTreeEnabled: "Full Tree enabled. Use Search to jump.",
+    openAll: "Open All",
+    collapseG2: "Collapse to G2",
+    expandLabel: "Expand",
+    expandParents: "Expand parents",
+    expandChildren: "Expand children",
+    expandSpouses: "Expand spouses",
+    expandSiblings: "Expand siblings",
+    quickJump: "Search / Jump",
+    lineageLabel: "Lineage",    compactOn: "Full Mode",
     compactOff: "Compact Mode",
     pathOn: "Hide Path",
     pathOff: "My Lineage",
@@ -892,6 +937,8 @@ function initFromData(data) {
   if (prefs.scale) scale = prefs.scale;
   hiddenGenerations.clear();
   if (prefs.viewMode) viewMode = prefs.viewMode;
+  if (prefs.treeView === "full" || prefs.treeView === "focus") treeView = prefs.treeView;
+  if (prefs.focusIncludeGrandparents !== undefined) focusIncludeGrandparents = Boolean(prefs.focusIncludeGrandparents);
   if (prefs.branchFilter) branchFilterValue = prefs.branchFilter;
   if (prefs.lang) lang = prefs.lang;
   if (prefs.compactMode) compactMode = true;
@@ -922,6 +969,14 @@ function initFromData(data) {
 
   applyCardScale();
   buildLayout();
+  if (treeView === "full") {
+    hiddenGenerations.clear();
+    branchFilterValue = "all";
+    visiblePeopleIds = new Set(treeData.people.map((p) => p.id));
+  } else {
+    treeView = "focus";
+    visiblePeopleIds = computeVisibleSetForFocus();
+  }
   updateStats();
   populateTimelineFilters();
   if (nodesList.length === 0) {
@@ -1095,6 +1150,7 @@ function savePrefs() {
     theme: app.dataset.theme,
     scale,
     viewMode,
+    treeView,
     branchFilter: branchFilterValue,
     lang,
     compactMode,
@@ -1108,7 +1164,8 @@ function savePrefs() {
     showBirthdate,
     showAge,
     showTags,
-    defaultView
+    defaultView,
+    focusIncludeGrandparents
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
 }
@@ -1300,6 +1357,44 @@ function buildGenerationControls() {
     updateUrlState();
   });
   generationControls.appendChild(reset);
+
+  const openAllBtn = document.createElement("button");
+  openAllBtn.type = "button";
+  openAllBtn.className = "gen-chip";
+  openAllBtn.dataset.openAll = "true";
+  openAllBtn.textContent = t.openAll;
+  openAllBtn.addEventListener("click", () => {
+    hiddenGenerations.clear();
+    generationControls.querySelectorAll(".gen-chip").forEach((chip) => {
+      if (!chip.dataset.reset && !chip.dataset.openAll && !chip.dataset.collapse) chip.classList.remove("inactive");
+    });
+    savePrefs();
+    scheduleRender();
+    updateUrlState();
+  });
+  generationControls.appendChild(openAllBtn);
+
+  const collapseBtn = document.createElement("button");
+  collapseBtn.type = "button";
+  collapseBtn.className = "gen-chip";
+  collapseBtn.dataset.collapse = "true";
+  collapseBtn.textContent = t.collapseG2;
+  collapseBtn.addEventListener("click", () => {
+    hiddenGenerations.clear();
+    for (let depth = 3; depth <= maxDepth; depth += 1) {
+      hiddenGenerations.add(depth);
+    }
+    generationControls.querySelectorAll(".gen-chip").forEach((chip) => {
+      if (!chip.dataset.reset && !chip.dataset.openAll && !chip.dataset.collapse) {
+        const depth = Number(chip.dataset.depth);
+        chip.classList.toggle("inactive", depth >= 3);
+      }
+    });
+    savePrefs();
+    scheduleRender();
+    updateUrlState();
+  });
+  generationControls.appendChild(collapseBtn);
 }
 
 function buildBranchFilter() {
@@ -1409,6 +1504,200 @@ function applyViewMode() {
     document.body.dataset.view = "tree";
     return;
   }
+// Focus/full view helpers and visibility logic.
+function updateTreeViewButtons() {
+  const isFocus = treeView === "focus";
+  if (focusViewBtn) focusViewBtn.classList.toggle("is-active", isFocus);
+  if (showAllBtn) showAllBtn.classList.toggle("is-active", !isFocus);
+  if (mobileFocusViewBtn) mobileFocusViewBtn.classList.toggle("is-active", isFocus);
+  if (mobileShowAllBtn) mobileShowAllBtn.classList.toggle("is-active", !isFocus);
+}
+
+function updateViewInfoBar() {
+  if (!viewInfo || !treeData) return;
+  const shouldShow = viewMode === "tree" && treeView === "focus";
+  viewInfo.hidden = !shouldShow;
+  if (!shouldShow) return;
+  const total = treeData.people?.length || 0;
+  const shown = visiblePeopleIds.size;
+  const t = i18n[lang] || i18n.ms;
+  if (viewInfoText) viewInfoText.textContent = formatText(t.viewInfoFocus, { shown, total });
+  if (viewInfoShowAll) viewInfoShowAll.textContent = formatText(t.viewInfoShowAll, { total });
+  if (viewInfoFit) viewInfoFit.textContent = t.fit;
+}
+
+function getFocusStartId() {
+  if (treeData?.selfId && peopleById.has(treeData.selfId)) return treeData.selfId;
+  const rootUnion = findRootUnion();
+  return rootUnion?.partner1 || rootUnion?.partner2 || treeData?.people?.[0]?.id || "";
+}
+
+function setTreeView(next, { fit = false, announce = false } = {}) {
+  if (!treeData) return;
+  if (viewMode !== "tree") {
+    viewMode = "tree";
+    applyViewMode();
+  }
+  treeView = next === "full" ? "full" : "focus";
+  if (treeView === "full") {
+    // Full tree: clear filters and show everything.
+    hiddenGenerations.clear();
+    branchFilterValue = "all";
+    visiblePeopleIds = new Set(treeData.people.map((p) => p.id));
+    buildLayout();
+    renderScene();
+    if (fit) fitToScreen();
+    if (selectedPersonId) applySelectionHighlight(selectedPersonId);
+    if (announce) setTreeStatus(i18n[lang].fullTreeEnabled);
+  } else {
+    // Focus tree: compute a small visible set around self/root.
+    visiblePeopleIds = computeVisibleSetForFocus();
+    buildLayout();
+    renderScene();
+    const focusId = getFocusStartId();
+    if (focusId) {
+      requestAnimationFrame(() => centerOnPerson(focusId));
+    }
+  }
+  updateViewInfoBar();
+  updateTreeViewButtons();
+  savePrefs();
+}
+
+function ensureVisibleInFocus(personId) {
+  if (treeView !== "focus") return;
+  if (!visiblePeopleIds.size) visiblePeopleIds = computeVisibleSetForFocus();
+  if (!visiblePeopleIds.has(personId)) {
+    expandAroundPerson(personId, { parents: true, spouses: true, children: true, siblings: true, grandparents: focusIncludeGrandparents });
+  }
+}
+
+function computeVisibleSetForFocus() {
+  const set = new Set();
+  const hasSelf = treeData?.selfId && peopleById.has(treeData.selfId);
+  if (hasSelf) {
+    expandAroundPerson(treeData.selfId, { parents: true, spouses: true, children: true, siblings: true, grandparents: focusIncludeGrandparents }, set);
+  } else {
+    const rootUnion = findRootUnion();
+    if (rootUnion) {
+      [rootUnion.partner1, rootUnion.partner2].forEach((id) => {
+        if (id) set.add(id);
+      });
+      (rootUnion.children || []).forEach((childId) => {
+        if (childId) set.add(childId);
+        getSpousesOf(childId).forEach((spouseId) => set.add(spouseId));
+      });
+    }
+  }
+  if (set.size === 0 && treeData?.people?.length) {
+    treeData.people.slice(0, 40).forEach((p) => set.add(p.id));
+  }
+  return set;
+}
+
+function findRootUnion() {
+  if (!treeData?.unions?.length) return null;
+  const childSet = new Set();
+  treeData.unions.forEach((u) => (u.children || []).forEach((cid) => childSet.add(cid)));
+  return treeData.unions.find((u) => (!u.partner1 || !childSet.has(u.partner1)) && (!u.partner2 || !childSet.has(u.partner2))) || treeData.unions[0];
+}
+
+function expandAroundPerson(personId, options = {}, targetSet = visiblePeopleIds) {
+  if (!personId || !targetSet) return;
+  const addIds = (ids) => {
+    ids.forEach((id) => {
+      if (id && peopleById.has(id)) targetSet.add(id);
+    });
+  };
+  addIds([personId]);
+  if (options.parents) addIds(getParentsOf(personId));
+  if (options.spouses) addIds(getSpousesOf(personId));
+  if (options.children) addIds(getChildrenOf(personId));
+  if (options.siblings) addIds(getSiblingsOf(personId));
+  if (options.grandparents) addIds(getGrandparentsOf(personId));
+}
+
+function getParentsOf(personId) {
+  const union = treeData.unions.find((u) => (u.children || []).includes(personId));
+  return union ? [union.partner1, union.partner2].filter(Boolean) : [];
+}
+
+function getSpousesOf(personId) {
+  const spouses = new Set();
+  treeData.unions.forEach((u) => {
+    if (u.partner1 === personId && u.partner2) spouses.add(u.partner2);
+    if (u.partner2 === personId && u.partner1) spouses.add(u.partner1);
+  });
+  return [...spouses];
+}
+
+function getChildrenOf(personId) {
+  const children = new Set();
+  treeData.unions.forEach((u) => {
+    if (u.partner1 === personId || u.partner2 === personId) {
+      (u.children || []).forEach((cid) => children.add(cid));
+    }
+  });
+  return [...children];
+}
+
+function getSiblingsOf(personId) {
+  const union = treeData.unions.find((u) => (u.children || []).includes(personId));
+  if (!union) return [];
+  return (union.children || []).filter((cid) => cid !== personId);
+}
+
+function getGrandparentsOf(personId) {
+  const grandparents = new Set();
+  getParentsOf(personId).forEach((pid) => {
+    getParentsOf(pid).forEach((gid) => grandparents.add(gid));
+  });
+  return [...grandparents];
+}
+
+function centerOnPerson(personId) {
+  if (!treeWrap) return false;
+  const group = elementByPersonId.get(personId);
+  if (!group) return false;
+  const rect = group.getBoundingClientRect();
+  const wrapRect = treeWrap.getBoundingClientRect();
+  const scrollLeft = treeWrap.scrollLeft + rect.left - wrapRect.left - wrapRect.width / 2 + rect.width / 2;
+  const scrollTop = treeWrap.scrollTop + rect.top - wrapRect.top - wrapRect.height / 2 + rect.height / 2;
+  treeWrap.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
+  highlightPerson(personId);
+  return true;
+}
+
+function highlightPerson(personId) {
+  document.querySelectorAll(".person-card.is-focused").forEach((el) => el.classList.remove("is-focused"));
+  const group = elementByPersonId.get(personId);
+  if (!group) return false;
+  const card = group.querySelector(`.person-card[data-person-id="${personId}"]`);
+  if (!card) return false;
+  card.classList.add("is-focused");
+  setTimeout(() => card.classList.remove("is-focused"), 1600);
+  return true;
+}
+
+function buildBreadcrumbLine(personId) {
+  if (!personId) return "";
+  const chain = [];
+  let cursor = personId;
+  let guard = 0;
+  while (guard < 6) {
+    guard += 1;
+    const parentUnion = treeData.unions.find((u) => (u.children || []).includes(cursor));
+    if (!parentUnion) break;
+    const parentId = parentUnion.partner1 || parentUnion.partner2;
+    if (!parentId) break;
+    chain.push(parentId);
+    cursor = parentId;
+  }
+  const names = chain.reverse().map((id) => formatDisplayName(peopleById.get(id)?.name || "")).filter(Boolean);
+  const current = formatDisplayName(peopleById.get(personId)?.name || "");
+  if (!current && names.length === 0) return "";
+  return names.length ? `${names.join(" → ")} → ${current}` : current;
+}
   if (viewMode === "timeline") {
     document.body.dataset.view = "timeline";
     timelineSection.hidden = false;
@@ -1487,6 +1776,8 @@ function renderScene() {
   if (treeCanvas && treeCanvas.children.length > 0) {
     setTreeStatus("");
   }
+  updateViewInfoBar();
+  updateTreeViewButtons();
 }
 
 function renderGenerationLabels() {
@@ -1515,6 +1806,21 @@ function renderGenerationLabels() {
 function nodeVisible(node) {
   if (hiddenGenerations.has(node.depth)) return false;
   if (branchFilterValue !== "all" && String(node.branchId) !== branchFilterValue) return false;
+  if (treeView === "focus" && viewMode === "tree") {
+    if (node.type === "person") return visiblePeopleIds.has(node.personId);
+    if (node.type === "union") {
+      const p1Visible = node.partner1 && visiblePeopleIds.has(node.partner1);
+      const p2Visible = node.partner2 && visiblePeopleIds.has(node.partner2);
+      const childVisible = (node.children || []).some((child) => {
+        if (child.type === "person") return visiblePeopleIds.has(child.personId);
+        if (child.type === "union") {
+          return (child.partner1 && visiblePeopleIds.has(child.partner1)) || (child.partner2 && visiblePeopleIds.has(child.partner2));
+        }
+        return false;
+      });
+      return p1Visible || p2Visible || childVisible;
+    }
+  }
   return true;
 }
 
@@ -1580,7 +1886,9 @@ function renderNode(node) {
     group.style.setProperty("--branch-color", branchPalette[node.branchId]);
     const partner1 = peopleById.get(node.partner1);
     const partner2 = node.partner2 ? peopleById.get(node.partner2) : null;
-    if (partner1) {
+    const showPartner1 = treeView !== "focus" || visiblePeopleIds.has(node.partner1);
+    const showPartner2 = treeView !== "focus" || visiblePeopleIds.has(node.partner2);
+    if (partner1 && showPartner1) {
       const card1 = createPersonCard(partner1, node.depth);
       card1.dataset.partner = "left";
       const isMenantu1 = (partner1?.relation || "").toLowerCase().includes("menantu");
@@ -1604,7 +1912,7 @@ function renderNode(node) {
       elementByPersonId.set(partner1.id, group);
       nodeByPersonId.set(partner1.id, node);
     }
-    if (partner2) {
+    if (partner2 && showPartner2) {
       const card2 = createPersonCard(partner2, node.depth);
       card2.dataset.partner = "right";
       const isMenantu2 = (partner2?.relation || "").toLowerCase().includes("menantu");
@@ -1732,6 +2040,7 @@ function createPersonCard(person, depth) {
     updateStoryPanel(person);
     selectedPersonId = person.id;
     applySelectionHighlight(person.id);
+    centerOnPerson(person.id);
     updateUrlState();
   });
 
@@ -2278,6 +2587,8 @@ function openModal(person) {
 function updateStoryPanel(person) {
   if (storyTitle) storyTitle.textContent = formatDisplayName(person.name);
   if (storyBody) storyBody.textContent = person.story || person.note || i18n[lang].storyEmpty;
+  if (storyBreadcrumb) storyBreadcrumb.textContent = buildBreadcrumbLine(person.id);
+  if (storyFocusActions) storyFocusActions.hidden = !(treeView === "focus" && viewMode === "tree");
 }
 
 function openTimelineInlineDetail(person, itemEl) {
@@ -2327,6 +2638,23 @@ on(modal, "click", (event) => {
 
 on(panelCloseBtn, "click", closeStoryPanel);
 on(panelCloseBtn, "touchstart", closeStoryPanel, { passive: true });
+
+function bindExpandAction(btn, options) {
+  if (!btn) return;
+  btn.addEventListener("click", () => {
+    if (!selectedPersonId) return;
+    if (treeView !== "focus") setTreeView("focus");
+    expandAroundPerson(selectedPersonId, options);
+    renderScene();
+    updateViewInfoBar();
+    requestAnimationFrame(() => centerOnPerson(selectedPersonId));
+  });
+}
+
+bindExpandAction(expandParentsBtn, { parents: true });
+bindExpandAction(expandChildrenBtn, { children: true });
+bindExpandAction(expandSpousesBtn, { spouses: true });
+bindExpandAction(expandSiblingsBtn, { siblings: true });
 
 function applyZoom() {
   if (!treeCanvas || !treeLines || !treeZoom) return;
@@ -2576,6 +2904,19 @@ if (mobileSearchBtn) {
   }, { passive: true });
 }
 
+if (quickJumpBtn) {
+  quickJumpBtn.addEventListener("click", () => {
+    if (controlsCollapsed) {
+      toggleControlsCollapsed(false);
+    }
+    if (searchInput) {
+      setTimeout(() => {
+        searchInput.focus();
+      }, 50);
+    }
+  });
+}
+
 if (resetViewBtn) {
   resetViewBtn.addEventListener("click", () => {
     scale = 1;
@@ -2816,6 +3157,27 @@ window.addEventListener("resize", () => {
   updateMinimap();
 });
 
+function setSearchActiveIndex(nextIndex) {
+  if (!searchResults || lastSearchResults.length === 0) {
+    searchActiveIndex = -1;
+    return;
+  }
+  const maxIndex = lastSearchResults.length - 1;
+  const clamped = Math.max(0, Math.min(maxIndex, nextIndex));
+  searchActiveIndex = clamped;
+  searchResults.querySelectorAll(".search-item").forEach((item) => {
+    item.classList.toggle("active", Number(item.dataset.index) === searchActiveIndex);
+  });
+}
+
+function selectSearchResult(index) {
+  const person = lastSearchResults[index];
+  if (!person) return;
+  searchResults.classList.remove("active");
+  searchInput.value = formatDisplayName(person.name);
+  focusPerson(person.id, true);
+}
+
 if (searchInput && searchResults) {
   searchInput.addEventListener("input", (event) => {
     const query = event.target.value.trim().toLowerCase();
@@ -2824,12 +3186,15 @@ if (searchInput && searchResults) {
       searchResults.innerHTML = "";
       clearHighlights();
       lastSearchResults = [];
+      searchActiveIndex = -1;
       return;
     }
 
+    const depthMap = getPersonDepthMap();
     const results = treeData.people.filter((person) => person.name.toLowerCase().includes(query));
     searchResults.innerHTML = "";
     lastSearchResults = results;
+    searchActiveIndex = results.length ? 0 : -1;
 
     if (results.length === 0) {
       const item = document.createElement("div");
@@ -2837,21 +3202,57 @@ if (searchInput && searchResults) {
       item.textContent = i18n[lang].searchNone;
       searchResults.appendChild(item);
     } else {
-      results.forEach((person) => {
+      results.forEach((person, index) => {
         const item = document.createElement("div");
         item.className = "search-item";
-        item.textContent = formatDisplayName(person.name);
+        item.dataset.index = String(index);
+        const name = document.createElement("div");
+        name.className = "search-name";
+        name.textContent = formatDisplayName(person.name);
+        const meta = document.createElement("div");
+        meta.className = "search-meta";
+        const relation = localizeTagText(person.relation || "", lang);
+        if (relation) {
+          const rel = document.createElement("span");
+          rel.className = "search-rel";
+          rel.textContent = relation;
+          meta.appendChild(rel);
+        }
+        const depth = depthMap.get(person.id);
+        if (depth) {
+          const gen = document.createElement("span");
+          gen.className = "search-gen";
+          gen.textContent = `G${depth}`;
+          meta.appendChild(gen);
+        }
+        item.appendChild(name);
+        if (meta.children.length) item.appendChild(meta);
         item.addEventListener("click", () => {
-          searchResults.classList.remove("active");
-          searchInput.value = formatDisplayName(person.name);
-          focusPerson(person.id, true);
+          selectSearchResult(index);
         });
+        item.addEventListener("mouseenter", () => setSearchActiveIndex(index));
         searchResults.appendChild(item);
       });
     }
 
     searchResults.classList.toggle("active", true);
+    setSearchActiveIndex(searchActiveIndex);
     highlightMatches(results.map((p) => p.id));
+  });
+
+  searchInput.addEventListener("keydown", (event) => {
+    if (!searchResults.classList.contains("active")) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setSearchActiveIndex(searchActiveIndex + 1);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setSearchActiveIndex(searchActiveIndex - 1);
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      const targetIndex = searchActiveIndex >= 0 ? searchActiveIndex : 0;
+      selectSearchResult(targetIndex);
+    }
   });
 }
 
@@ -2876,7 +3277,6 @@ function highlightMatches(ids) {
 }
 
 function focusPerson(personId, open = false) {
-  const el = elementByPersonId.get(personId);
   const person = peopleById.get(personId);
   if (!person) return;
   if (!treeWrap) return;
@@ -2887,22 +3287,24 @@ function focusPerson(personId, open = false) {
     scheduleRender();
   }
 
-  if (!el) {
-    if (!nodeByPersonId.get(personId)) return;
-    scheduleRender();
+  if (treeView === "focus") {
+    // Ensure target is visible in focus mode.
+    ensureVisibleInFocus(personId);
   }
 
   selectedPersonId = personId;
   updateStoryPanel(person);
   applySelectionHighlight(personId);
-
   if (open) openModal(person);
 
-  const rect = el.getBoundingClientRect();
-  const wrapRect = treeWrap.getBoundingClientRect();
-  const scrollLeft = treeWrap.scrollLeft + rect.left - wrapRect.left - wrapRect.width / 2 + rect.width / 2;
-  const scrollTop = treeWrap.scrollTop + rect.top - wrapRect.top - wrapRect.height / 2 + rect.height / 2;
-  treeWrap.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
+  if (!elementByPersonId.get(personId)) {
+    scheduleRender();
+  }
+  requestAnimationFrame(() => {
+    if (!centerOnPerson(personId)) {
+      setTimeout(() => centerOnPerson(personId), 80);
+    }
+  });
   updateUrlState();
 }
 
@@ -2924,6 +3326,28 @@ if (viewToggle) {
     savePrefs();
     updateUrlState();
   });
+}
+
+if (viewTreeBtn)
+
+function bindTreeViewButton(btn, nextView) {
+  if (!btn) return;
+  const handler = () => setTreeView(nextView, { fit: nextView === "full", announce: nextView === "full" });
+  btn.addEventListener("click", handler);
+  btn.addEventListener("touchstart", handler, { passive: true });
+}
+
+bindTreeViewButton(focusViewBtn, "focus");
+bindTreeViewButton(showAllBtn, "full");
+bindTreeViewButton(mobileFocusViewBtn, "focus");
+bindTreeViewButton(mobileShowAllBtn, "full");
+
+if (viewInfoShowAll) {
+  viewInfoShowAll.addEventListener("click", () => setTreeView("full", { fit: true, announce: true }));
+}
+
+if (viewInfoFit) {
+  viewInfoFit.addEventListener("click", () => fitToScreen());
 }
 
 if (viewTreeBtn) {
@@ -3473,6 +3897,11 @@ function applyLanguage() {
   if (treeCanvas) treeCanvas.dataset.emptyText = "";
   if (searchInput) searchInput.placeholder = t.searchPlaceholder;
   if (viewToggle) viewToggle.textContent = viewMode === "timeline" ? t.viewTree : t.viewTimeline;
+  if (focusViewBtn) focusViewBtn.textContent = t.focusView;
+  if (showAllBtn) showAllBtn.textContent = t.showAll;
+  if (mobileFocusViewBtn) mobileFocusViewBtn.textContent = t.focusView;
+  if (mobileShowAllBtn) mobileShowAllBtn.textContent = t.showAll;
+  if (quickJumpBtn) quickJumpBtn.textContent = t.quickJump;
   if (compactToggleBtn) compactToggleBtn.textContent = compactMode ? t.compactOn : t.compactOff;
   if (pathToggleBtn) pathToggleBtn.textContent = pathMode ? t.pathOn : t.pathOff;
   if (focusEldersBtn) focusEldersBtn.textContent = t.focusElders;
@@ -3529,6 +3958,8 @@ function applyLanguage() {
 
   generationControls?.querySelectorAll(".gen-chip").forEach((chip) => {
     if (chip.dataset.reset) chip.textContent = t.genAll;
+    if (chip.dataset.openAll) chip.textContent = t.openAll;
+    if (chip.dataset.collapse) chip.textContent = t.collapseG2;
   });
 
   if (!selectedPersonId) {
@@ -3543,6 +3974,8 @@ function applyLanguage() {
 
   syncMobileLabels();
   if (minimapHandle) minimapHandle.textContent = t.minimapShow;
+  updateViewInfoBar();
+  updateTreeViewButtons();
 }
 
 function minimapScrollTo(clientX, clientY) {
@@ -3736,3 +4169,10 @@ function updateUrlState() {
 
   history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
 }
+
+
+
+
+
+
+
