@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
@@ -7,433 +7,144 @@
   <meta name="theme-color" content="#4f8a6a" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@300;400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260210-1" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=20260210-3" />
 </head>
 <body>
   <div class="app" id="app" data-theme="light">
-    <header class="topbar">
-      <div id="mobile-topbar" class="mobile-topbar" aria-label="Mobile top bar">
-        <button id="mobile-settings-btn" class="btn ghost icon" type="button" aria-label="Settings">⚙️</button>
-        <button id="mobile-search-btn" class="btn ghost icon" type="button" aria-label="Search">🔎</button>
-      </div>
-      <div class="brand">
-        <p class="kicker" data-i18n="appKicker">Salasilah Keluarga</p>
-        <h1 data-i18n="appTitle">Paparan Generasi Keluarga</h1>
-        <p class="subtitle" data-i18n="appSubtitle">Semua ahli keluarga dalam satu pandangan yang jelas, mudah, dan mesra.</p>
-        <div class="brand-minimap-wrap">
-          <div class="minimap-label" data-i18n="minimapTitle">Minimap</div>
-          <div class="minimap minimap-brand" id="minimap">
-            <canvas id="minimap-canvas"></canvas>
-            <div id="minimap-viewport" aria-hidden="true"></div>
-          </div>
-          <button class="minimap-close" id="minimap-close-btn" type="button" aria-label="Tutup minimap">×</button>
-          <p class="minimap-hint" id="minimap-hint" data-i18n="minimapHint">Klik pada kotak kecil untuk lompat lokasi. Kotak putih menunjukkan kawasan semasa.</p>
-          <button class="minimap-handle" id="minimap-handle" type="button" data-i18n="minimapShow">Buka Minimap</button>
+    <header class="toolbar" id="toolbar">
+      <div class="toolbar-left">
+        <div class="brand-mini">
+          <span class="brand-kicker">Salasilah Keluarga</span>
+          <strong class="brand-title">Family Generation View</strong>
+        </div>
+        <div class="search-box">
+          <input id="search-input" type="search" placeholder="Cari nama ahli keluarga..." aria-label="Cari nama" />
+          <div id="search-results" class="search-results" aria-live="polite"></div>
         </div>
       </div>
-      <div id="bottom-sheet" class="bottom-sheet">
-        <div id="sheet-handle" class="sheet-handle" role="button" aria-label="Toggle panel"></div>
-        <div class="controls">
-          <button id="controls-toggle" class="controls-toggle" type="button">Tutup Panel</button>
-          <div class="control-group">
-            <label for="search" class="label" data-i18n="searchLabel">Carian nama</label>
-            <div class="search-row">
-              <input id="search" type="search" placeholder="Cari nama ahli keluarga..." data-i18n-placeholder="searchPlaceholder" />
-              <button id="search-go" class="btn ghost small" data-i18n="searchGo">Cari & Fokus</button>
-            </div>
-            <div id="search-results" class="search-results" aria-live="polite"></div>
-          </div>
-          <div class="control-group" hidden>
-            <label for="branch-filter" class="label" data-i18n="branchLabel">Tapis cabang</label>
-            <select id="branch-filter" class="select"></select>
-          </div>
-          <div class="mobile-actions" aria-label="Aksi mudah alih">
-            <div class="control-row mobile-quick">
-              <button class="btn" id="m-zoom-in" data-action="zoom-in" data-i18n="zoomIn">Zoom +</button>
-              <button class="btn" id="m-zoom-out" data-action="zoom-out" data-i18n="zoomOut">Zoom -</button>
-              <button class="btn ghost" id="m-zoom-fit" data-action="zoom-fit" data-i18n="fit">Fit Skrin</button>
-            </div>
-            <div class="control-row mobile-view">
-              <button class="btn ghost" id="m-focus-view" type="button" data-i18n="focusView">Focus View</button>
-              <button class="btn" id="m-show-all" type="button" data-i18n="showAll">Show All</button>
-            </div>
-          </div>
-          <div class="control-row actions-view">
-            <button id="focus-view" class="btn ghost" type="button" data-i18n="focusView">Focus View</button>
-            <button id="show-all" class="btn" type="button" data-i18n="showAll">Show All</button>
-          </div>
-          <div class="control-row actions-zoom">
-            <button id="zoom-in" class="btn" data-i18n="zoomIn">Zoom +</button>
-            <button id="zoom-out" class="btn" data-i18n="zoomOut">Zoom -</button>
-            <button id="zoom-reset" class="btn ghost" data-i18n="zoomReset">Reset</button>
-            <button id="zoom-fit" class="btn ghost" data-i18n="fit">Fit Skrin</button>
-            <button id="reset-view" class="btn ghost" data-i18n="resetView">Reset View</button>
-            <button id="view-toggle" class="btn ghost" data-i18n="viewTimeline">Lihat Timeline</button>
-          </div>
-          <div id="validate-output" class="validate-output" aria-live="polite"></div>
-          <div class="control-group generation-row">
-            <div>
-              <label class="label" data-i18n="generationLabel">Generasi (Collapse/Expand)</label>
-              <div id="generation-controls" class="generation-controls"></div>
-            </div>
-            <div class="export-actions">
-              <button id="export-menu-btn" class="btn ghost" type="button" data-i18n="exportMenu">Download</button>
-              <button id="settings-btn" class="btn ghost" type="button" data-i18n="settingsTitle">
-                Settings
-              </button>
-              <div id="export-menu" class="export-menu" hidden>
-                <button id="export-png" class="btn ghost small" type="button" data-i18n="exportPng">Image (JPEG)</button>
-                <button id="export-pdf" class="btn ghost small" type="button" data-i18n="exportPdf">File (PDF)</button>
-              </div>
-            </div>
-          </div>
+      <div class="toolbar-right">
+        <div class="segmented">
+          <button id="view-focus" class="btn small is-active" type="button">Focus</button>
+          <button id="view-full" class="btn small ghost" type="button">Full Tree</button>
         </div>
-        <button id="mobile-panel-btn" class="mobile-panel-btn" type="button">Buka Panel</button>
+        <button id="center-selected" class="btn ghost small" type="button">Center</button>
+        <button id="reset-view" class="btn ghost small" type="button">Reset</button>
+        <button id="export-png" class="btn ghost small" type="button">Export PNG</button>
+        <button id="export-pdf" class="btn ghost small" type="button">Export PDF</button>
+        <button id="toggle-insights" class="btn ghost small" type="button">Insights</button>
       </div>
     </header>
 
-    <section class="stats" id="stats">
-      <div class="stat-card">
-        <div class="stat-label" data-i18n="statsPeople">Jumlah Ahli</div>
-        <div class="stat-value" id="stat-people">0</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label" data-i18n="statsCouples">Jumlah Pasangan</div>
-        <div class="stat-value" id="stat-couples">0</div>
-      </div>
-      <div class="stat-card stat-card--gender">
-        <div class="stat-label" data-i18n="statsGender">Jantina</div>
-        <div class="stat-split">
-          <div class="stat-split-item">
-            <span class="stat-sub-label" data-i18n="statsMale">Lelaki</span>
-            <span class="stat-value" id="stat-male">0</span>
-          </div>
-          <div class="stat-split-item">
-            <span class="stat-sub-label" data-i18n="statsFemale">Perempuan</span>
-            <span class="stat-value" id="stat-female">0</span>
-          </div>
-        </div>
-      </div>
-      <div class="stat-card stat-card--descendants">
-        <div class="stat-label" data-i18n="statsDescendants">Keturunan</div>
-        <div class="stat-split">
-          <div class="stat-split-item">
-            <span class="stat-sub-label" data-i18n="statsCucu">Cucu</span>
-            <span class="stat-value" id="stat-cucu">0</span>
-          </div>
-          <div class="stat-split-item">
-            <span class="stat-sub-label" data-i18n="statsCicit">Cicit</span>
-            <span class="stat-value" id="stat-cicit">0</span>
-          </div>
-        </div>
-      </div>
-      <div class="stat-card stat-card--birthday">
-        <div class="stat-label" data-i18n="statsUpcoming">Ulang Tahun Terdekat</div>
-        <div class="stat-value" id="stat-upcoming-name">-</div>
-        <div class="stat-sub" id="stat-upcoming-meta">-</div>
-      </div>
-    </section>
-    <div class="view-switch" role="group" aria-label="View switch">
-      <button id="view-tree-btn" class="btn ghost small" type="button" data-i18n="viewTree">Lihat Tree</button>
-      <button id="view-timeline-btn" class="btn ghost small" type="button" data-i18n="viewTimeline">Lihat Timeline</button>
-    </div>
+    <main class="main">
+      <section class="tree-area">
+        <div id="focus-view" class="focus-view"></div>
 
-    <main class="tree-section">
-      <div id="mini-toolbar" class="mini-toolbar" aria-label="Quick nav">
-        <button id="mini-search" class="btn ghost small" type="button" data-i18n="searchGo">Cari & Fokus</button>
-        <button id="mini-zoom-in" class="btn small" type="button">+</button>
-        <button id="mini-zoom-out" class="btn small" type="button">−</button>
-        <button id="mini-zoom-fit" class="btn ghost small" type="button" data-i18n="fit">Fit Skrin</button>
-      </div>
-      <button id="quick-jump" class="quick-jump" type="button" data-i18n="quickJump">Search / Jump</button>
-      <div class="content-grid">
-          <div class="tree-wrap" id="tree-wrap">
-            <div id="view-info" class="view-info" hidden>
-              <div id="view-info-text" class="view-info-text"></div>
-              <div class="view-info-actions">
-                <button id="view-info-show-all" class="btn small" type="button">Show All</button>
-                <button id="reset-focus" class="btn ghost small" type="button">Reset Focus</button>
-                <button id="view-info-fit" class="btn ghost small" type="button" data-i18n="fit">Fit Skrin</button>
-              </div>
-            </div>
-            <div class="tree-zoom" id="tree-zoom">
-            <svg class="tree-lines" id="tree-lines" xmlns="http://www.w3.org/2000/svg"></svg>
-            <div class="tree-canvas" id="tree-canvas" aria-live="polite"></div>
-          </div>
-          <div id="tree-status" class="tree-status" aria-live="polite"></div>
-        </div>
-        <aside class="story-panel" id="story-panel" hidden>
-          <div class="story-head">
-            <h2 id="story-title">Cerita Keluarga</h2>
-            <div class="story-actions">
-              <button id="panel-close" class="btn ghost small close-btn" aria-label="Tutup">
-                <span aria-hidden="true">×</span>
-              </button>
-              <button id="panel-edit" class="btn ghost small" data-i18n="modalEdit">Edit</button>
-            </div>
-          </div>
-          <div id="story-content" class="story-content">
-            <p id="story-body">Klik pada mana-mana ahli keluarga untuk melihat catatan panjang.</p>
-          </div>
-          <div class="story-focus" id="story-focus">
-            <div class="story-breadcrumb" id="story-breadcrumb"></div>
-            <div class="story-focus-actions" id="story-focus-actions" hidden>
-              <span class="story-focus-label" data-i18n="expandLabel">Expand</span>
-              <button id="expand-parents" class="btn ghost small" type="button" data-i18n="expandParents">Expand parents</button>
-              <button id="expand-children" class="btn ghost small" type="button" data-i18n="expandChildren">Expand children</button>
-              <button id="expand-spouses" class="btn ghost small" type="button" data-i18n="expandSpouses">Expand spouses</button>
-              <button id="expand-siblings" class="btn ghost small" type="button" data-i18n="expandSiblings">Expand siblings</button>
-              <button id="path-toggle" class="btn ghost small" type="button" data-i18n="pathOff">Show lineage</button>
-            </div>
-          </div>
-          <form class="story-edit" id="panel-edit-form" hidden>
-            <label data-i18n="modalFullName">Nama penuh</label>
-            <input class="input" id="panel-edit-name" />
-            <label data-i18n="firstNameLabel">Nama pertama</label>
-            <input class="input" id="panel-edit-first" readonly />
-            <label data-i18n="lastNameLabel">Nama akhir</label>
-            <input class="input" id="panel-edit-last" readonly />
-            <div class="radio-group">
-              <span class="label" data-i18n="genderLabel">Jantina</span>
-              <label class="radio">
-                <input type="radio" name="panel-gender" value="male" disabled />
-                <span data-i18n="genderMale">Lelaki</span>
-              </label>
-              <label class="radio">
-                <input type="radio" name="panel-gender" value="female" disabled />
-                <span data-i18n="genderFemale">Perempuan</span>
-              </label>
-            </div>
-            <label data-i18n="modalRelation">Hubungan</label>
-            <input class="input" id="panel-edit-relation" />
-            <label data-i18n="modalBirth">Tarikh lahir</label>
-            <input class="input" id="panel-edit-birth" type="date" />
-            <label data-i18n="modalDeath">Tarikh meninggal</label>
-            <input class="input" id="panel-edit-death" type="date" />
-            <label data-i18n="modalImage">URL gambar</label>
-            <input class="input" id="panel-edit-photo" />
-            <input class="input" id="panel-edit-photo-file" type="file" accept="image/*" />
-            <label data-i18n="modalShortNote">Nota ringkas</label>
-            <textarea class="textarea" id="panel-edit-note"></textarea>
-            <label data-i18n="modalLongStory">Cerita panjang</label>
-            <textarea class="textarea" id="panel-edit-story"></textarea>
-            <div class="story-edit-actions">
-              <button type="button" class="btn ghost" id="panel-cancel" data-i18n="modalCancel">Batal</button>
-              <button type="submit" class="btn" data-i18n="modalSave">Simpan</button>
-            </div>
-          </form>
-        </aside>
-      </div>
-      <section class="timeline-section" id="timeline-section" hidden>
-        <div class="timeline-head">
-          <h2 data-i18n="timelineTitle">Timeline Keluarga</h2>
-        </div>
-        <div class="timeline-filters-card">
-          <div class="timeline-filters primary">
-            <label class="timeline-filter">
-              <span data-i18n="timelineMonth">Bulan Lahir</span>
-              <select id="timeline-month" class="select"></select>
-            </label>
-            <label class="timeline-filter">
-              <span data-i18n="timelineGender">Jantina</span>
-              <select id="timeline-gender" class="select">
-                <option value="all" data-i18n="timelineGenderAll">Semua</option>
-                <option value="male" data-i18n="timelineGenderMale">Lelaki</option>
-                <option value="female" data-i18n="timelineGenderFemale">Perempuan</option>
+        <div id="full-view" class="full-view" hidden>
+          <div class="full-toolbar">
+            <label class="full-control">
+              Generasi
+              <select id="full-gen">
+                <option value="1">Gen 1</option>
+                <option value="2">Gen 2</option>
+                <option value="3" selected>Gen 3</option>
+                <option value="4">Gen 4</option>
               </select>
             </label>
-            <label class="timeline-filter">
-              <span data-i18n="timelineSort">Susun</span>
-              <select id="timeline-sort" class="select">
-                <option value="year" data-i18n="timelineSortYear">Ikut Tahun</option>
-                <option value="age" data-i18n="timelineSortAge">Ikut Umur</option>
-                <option value="alpha" data-i18n="timelineSortAlpha">Ikut Abjad</option>
-                <option value="month" data-i18n="timelineSortMonth">Ikut Bulan</option>
-                <option value="gender" data-i18n="timelineSortGender">Ikut Jantina</option>
-                <option value="parent" data-i18n="timelineSortParent">Ikut Ibu Bapa</option>
-              </select>
-            </label>
-            <button id="timeline-clear" class="btn ghost small timeline-reset" type="button" data-i18n="timelineClear">Reset</button>
-          </div>
-          <button id="timeline-more-btn" class="timeline-more-btn" type="button" aria-expanded="false" data-i18n="timelineMore">Tapis lagi</button>
-          <div id="timeline-more-panel" class="timeline-more-panel" aria-hidden="true">
-            <div class="timeline-filters secondary">
-              <label class="timeline-filter">
-                <span data-i18n="timelineGenLabel">Generasi</span>
-                <select id="timeline-gen" class="select"></select>
-              </label>
+            <button id="branch-only" class="btn ghost small" type="button">Branch Only</button>
+            <button id="expand-all" class="btn ghost small" type="button">Expand All</button>
+            <button id="collapse-all" class="btn ghost small" type="button">Collapse All</button>
+            <div id="breadcrumbs" class="breadcrumbs" aria-live="polite"></div>
+            <div class="full-zoom">
+              <button id="zoom-in" class="btn ghost small" type="button">+</button>
+              <button id="zoom-out" class="btn ghost small" type="button">-</button>
+              <button id="zoom-reset" class="btn ghost small" type="button">Reset Zoom</button>
             </div>
           </div>
-          <div id="timeline-active-filters" class="timeline-active-filters" hidden></div>
+          <div id="full-tree-list" class="full-tree-list" tabindex="0">
+            <div id="full-tree-top"></div>
+            <div id="full-tree-inner" class="full-tree-inner"></div>
+            <div id="full-tree-bottom"></div>
+          </div>
         </div>
-        <div class="timeline-list" id="timeline-list"></div>
+
+        <div id="tree-status" class="tree-status" aria-live="polite"></div>
       </section>
+
+      <aside id="insights" class="insights">
+        <div class="insights-header">
+          <h3>Insights</h3>
+          <p>Ringkasan keluarga</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Jumlah Ahli</div>
+          <div class="stat-value" id="stat-people">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Jumlah Pasangan</div>
+          <div class="stat-value" id="stat-couples">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Jantina</div>
+          <div class="stat-split">
+            <div>
+              <span>Lelaki</span>
+              <strong id="stat-male">0</strong>
+            </div>
+            <div>
+              <span>Perempuan</span>
+              <strong id="stat-female">0</strong>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Keturunan</div>
+          <div class="stat-split">
+            <div>
+              <span>Cucu</span>
+              <strong id="stat-cucu">-</strong>
+            </div>
+            <div>
+              <span>Cicit</span>
+              <strong id="stat-cicit">-</strong>
+            </div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ulang Tahun Terdekat</div>
+          <div class="stat-value" id="stat-upcoming-name">-</div>
+          <div class="stat-sub" id="stat-upcoming-meta">-</div>
+        </div>
+      </aside>
     </main>
   </div>
 
-  <div class="modal" id="person-modal" aria-hidden="true">
-    <div class="modal-backdrop" data-close="true"></div>
-    <div class="modal-card" role="dialog" aria-modal="true">
-      <button class="modal-close" data-close="true" data-i18n="modalClose">Tutup</button>
-      <div class="modal-body" id="modal-body"></div>
-    </div>
-  </div>
-
-  <div class="overlay-tip" id="tip-overlay" aria-hidden="true">
-    <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="tip-title">
-      <h3 id="tip-title">Tip</h3>
-      <p id="tip-text">Tip: Gunakan Carian untuk lompat ke nama. Mode Fokus untuk mudah faham. Tekan ‘Tunjuk Semua’ jika nak overview.</p>
-      <label class="tip-check">
-        <input id="tip-hide" type="checkbox" />
-        <span id="tip-hide-label">Jangan tunjuk lagi</span>
-      </label>
-      <div class="overlay-actions">
-        <button id="tip-close" class="btn" type="button">OK</button>
+  <aside id="detail-drawer" class="drawer" aria-hidden="true">
+    <div class="drawer-head">
+      <div>
+        <span class="drawer-kicker">Profil</span>
+        <h2 id="drawer-title">-</h2>
       </div>
+      <button id="drawer-close" class="btn ghost small" type="button" aria-label="Tutup">�</button>
     </div>
-  </div>
-
-  <div class="overlay-modal" id="showall-modal" aria-hidden="true">
-    <div class="overlay-card" role="dialog" aria-modal="true" aria-labelledby="showall-title">
-      <h3 id="showall-title">Paparan penuh mungkin berat untuk telefon. Teruskan?</h3>
-      <div class="overlay-actions">
-        <button id="showall-continue" class="btn" type="button">Continue</button>
-        <button id="showall-stay" class="btn ghost" type="button">Stay in Focus</button>
-      </div>
+    <div id="drawer-body" class="drawer-body"></div>
+    <div class="drawer-actions">
+      <button id="drawer-focus" class="btn ghost small" type="button">Focus View</button>
+      <button id="drawer-cta" class="btn small" type="button">Open Branch</button>
     </div>
-  </div>
-
-  <div class="overlay-search" id="search-overlay" aria-hidden="true">
-    <div class="overlay-card overlay-search-card" role="dialog" aria-modal="true" aria-labelledby="search-overlay-title">
-      <div class="overlay-search-head">
-        <h3 id="search-overlay-title" data-i18n="quickJump">Search / Jump</h3>
-        <button id="search-overlay-close" class="btn ghost small" type="button">×</button>
-      </div>
-      <input id="search-overlay-input" class="input" type="search" placeholder="Cari nama ahli keluarga..." data-i18n-placeholder="searchPlaceholder" />
-      <div id="search-overlay-results" class="search-results overlay-results" aria-live="polite"></div>
-    </div>
-  </div>
-
-  <div id="debug-overlay" class="debug-overlay" hidden></div>
+  </aside>
 
   <div id="fatalError" class="fatal-error" aria-live="polite" hidden>
     <div class="fatal-card" role="alertdialog" aria-modal="true" aria-labelledby="fatal-title">
       <h3 id="fatal-title">Ralat</h3>
-      <button id="fatalClose" class="fatal-close" aria-label="Tutup" type="button">×</button>
+      <button id="fatalClose" class="fatal-close" aria-label="Tutup" type="button">�</button>
       <pre class="msg"></pre>
       <button id="fatalReload" class="btn" type="button">Reload</button>
     </div>
   </div>
 
-  <div class="settings-modal" id="settings-modal" aria-hidden="true">
-    <div class="settings-backdrop" data-settings-close="true"></div>
-    <div class="settings-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <button class="settings-close" type="button" aria-label="Tutup" data-settings-close="true">×</button>
-      <h2 id="settings-title" data-i18n="settingsTitle">Settings</h2>
-
-      <div class="settings-section">
-        <h3 data-i18n="settingsDisplay">Paparan</h3>
-        <div class="settings-grid">
-          <div class="settings-slider">
-            <label for="setting-card-scale" class="label" data-i18n="settingsCardSize">Saiz Kad</label>
-            <input id="setting-card-scale" type="range" min="0.85" max="1.15" step="0.05" />
-            <div class="settings-scale-labels">
-              <span data-i18n="settingsSizeSmall">Kecil</span>
-              <span data-i18n="settingsSizeNormal">Normal</span>
-              <span data-i18n="settingsSizeLarge">Besar</span>
-            </div>
-          </div>
-        </div>
-        <div class="settings-row">
-          <label class="settings-select">
-            <span class="label" data-i18n="themePreset">Tema</span>
-            <select id="theme-preset" class="select">
-              <option value="default" data-i18n="themeDefault">Default</option>
-              <option value="heritage" data-i18n="themeHeritage">Heritage</option>
-              <option value="ocean" data-i18n="themeOcean">Ocean</option>
-              <option value="sunset" data-i18n="themeSunset">Sunset</option>
-            </select>
-          </label>
-          <label class="toggle">
-            <input id="toggle-theme" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="themeToggle">Light / Dark</span>
-          </label>
-        </div>
-        <div class="settings-grid settings-grid--toggles">
-          <label class="toggle">
-            <input id="lang-toggle" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="langToggle">BM / EN</span>
-          </label>
-          <label class="toggle">
-            <input id="settings-compact" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="settingsCompact">Compact Mode</span>
-          </label>
-          <label class="toggle">
-            <input id="setting-show-birthdate" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="settingsShowBirthdate">Show Birthdate</span>
-          </label>
-          <label class="toggle">
-            <input id="setting-show-age" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="settingsShowAge">Show Age</span>
-          </label>
-          <label class="toggle">
-            <input id="setting-show-tags" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="settingsShowTags">Show Tags</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h3 data-i18n="settingsNav">Navigation</h3>
-        <div class="settings-grid">
-          <label class="toggle">
-            <input id="settings-minimap" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="settingsMinimap">Minimap</span>
-          </label>
-          <label class="toggle">
-            <input id="settings-drag" type="checkbox" />
-            <span class="toggle-track"></span>
-            <span class="toggle-label" data-i18n="settingsDrag">Drag to Pan</span>
-          </label>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h3 data-i18n="settingsTools">Tools</h3>
-        <div class="settings-grid settings-grid--tools">
-          <button id="setting-reset-settings" class="btn ghost small" type="button" data-i18n="settingsReset">
-            Reset settings
-          </button>
-          <button id="clear-cache" class="btn danger small" type="button" data-i18n="clearCache">
-            Clear Cache
-          </button>
-          <button class="btn ghost small settings-close-btn" type="button" data-settings-close="true" data-i18n="settingsClose">
-            Close
-          </button>
-        </div>
-      </div>
-
-      <div class="settings-section">
-        <h3 data-i18n="settingsAbout">About</h3>
-        <div class="settings-about">
-          <span data-i18n="settingsDataVersion">Data version</span>
-          <strong id="settings-data-version">-</strong>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=20260210-1" defer></script>
+  <script src="app.js?v=20260210-3" defer></script>
 </body>
 </html>
-

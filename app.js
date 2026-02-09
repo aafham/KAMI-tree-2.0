@@ -1,4744 +1,764 @@
-﻿const treeWrap = document.getElementById("tree-wrap");
-const treeZoom = document.getElementById("tree-zoom");
-const treeCanvas = document.getElementById("tree-canvas");
-const treeStatus = document.getElementById("tree-status");
-const treeLines = document.getElementById("tree-lines");
-const minimapCanvas = document.getElementById("minimap-canvas");
-const searchInput = document.getElementById("search");
-const searchResults = document.getElementById("search-results");
-const searchGoBtn = document.getElementById("search-go");
-const zoomInBtn = document.getElementById("zoom-in");
-const zoomOutBtn = document.getElementById("zoom-out");
-const zoomResetBtn = document.getElementById("zoom-reset");
-const resetViewBtn = document.getElementById("reset-view");
-const toggleThemeBtn = document.getElementById("toggle-theme");
-const exportPngBtn = document.getElementById("export-png");
-const exportPdfBtn = document.getElementById("export-pdf");
-const exportMenuBtn = document.getElementById("export-menu-btn");
-const exportMenu = document.getElementById("export-menu");
-const exportJsonBtn = document.getElementById("export-json");
-const importJsonBtn = document.getElementById("import-json");
-const importJsonFile = document.getElementById("import-json-file");
-const validateDataBtn = document.getElementById("validate-data");
-const focusEldersBtn = document.getElementById("focus-elders");
-const backTopBtn = document.getElementById("back-top");
-const pathToggleBtn = document.getElementById("path-toggle");
-const compactToggleBtn = document.getElementById("compact-toggle");
-const validateOutput = document.getElementById("validate-output");
-const modal = document.getElementById("person-modal");
-const modalBody = document.getElementById("modal-body");
-const app = document.getElementById("app");
-const controlsToggleBtn = document.getElementById("controls-toggle");
-const mobilePanelBtn = document.getElementById("mobile-panel-btn");
-const generationControls = document.getElementById("generation-controls");
-const branchFilter = document.getElementById("branch-filter");
-const viewToggle = document.getElementById("view-toggle");
-const storyPanel = document.getElementById("story-panel");
-const storyTitle = document.getElementById("story-title");
-const storyBody = document.getElementById("story-body");
-const storyContent = document.getElementById("story-content");
-const panelEditBtn = document.getElementById("panel-edit");
-const panelCloseBtn = document.getElementById("panel-close");
-const panelEditForm = document.getElementById("panel-edit-form");
-const panelCancelBtn = document.getElementById("panel-cancel");
-const panelEditName = document.getElementById("panel-edit-name");
-const panelEditFirst = document.getElementById("panel-edit-first");
-const panelEditLast = document.getElementById("panel-edit-last");
-const panelGenderInputs = document.querySelectorAll('input[name="panel-gender"]');
-const panelEditRelation = document.getElementById("panel-edit-relation");
-const panelEditBirth = document.getElementById("panel-edit-birth");
-const panelEditDeath = document.getElementById("panel-edit-death");
-const panelEditPhoto = document.getElementById("panel-edit-photo");
-const panelEditPhotoFile = document.getElementById("panel-edit-photo-file");
-const panelEditNote = document.getElementById("panel-edit-note");
-const panelEditStory = document.getElementById("panel-edit-story");
-const timelineSection = document.getElementById("timeline-section");
-const timelineList = document.getElementById("timeline-list");
-const zoomFitBtn = document.getElementById("zoom-fit");
-const langToggleBtn = document.getElementById("lang-toggle");
-const clearCacheBtn = document.getElementById("clear-cache");
-const mobileActionSelect = document.getElementById("mobile-action");
-const mobileActionLabel = document.getElementById("mobile-action-label");
-const mobileActionGo = document.getElementById("mobile-action-go");
-const mobileQuickZoomIn = document.getElementById("m-zoom-in");
-const mobileQuickZoomOut = document.getElementById("m-zoom-out");
-const mobileQuickZoomFit = document.getElementById("m-zoom-fit");
-const mobileSettingsBtn = document.getElementById("mobile-settings-btn");
-const mobileSearchBtn = document.getElementById("mobile-search-btn");
-const bottomSheetHandle = document.getElementById("sheet-handle");
-const miniToolbar = document.getElementById("mini-toolbar");
-const miniSearchBtn = document.getElementById("mini-search");
-const miniZoomInBtn = document.getElementById("mini-zoom-in");
-const miniZoomOutBtn = document.getElementById("mini-zoom-out");
-const miniZoomFitBtn = document.getElementById("mini-zoom-fit");
-const settingsBtn = document.getElementById("settings-btn");
-const bottomSheet = document.getElementById("bottom-sheet");
-const settingsModal = document.getElementById("settings-modal");
-const settingsCompact = document.getElementById("settings-compact");
-const settingsLines = document.getElementById("settings-lines");
-const settingsCardScale = document.getElementById("setting-card-scale");
-const settingsMinimap = document.getElementById("settings-minimap");
-const settingsDrag = document.getElementById("settings-drag");
-const settingsDefaultView = document.getElementById("settings-default-view");
-const settingsReset = document.getElementById("setting-reset-settings");
-const settingsShowBirthdate = document.getElementById("setting-show-birthdate");
-const settingsShowAge = document.getElementById("setting-show-age");
-const settingsShowTags = document.getElementById("setting-show-tags");
-const settingsClearData = document.getElementById("setting-clear-data");
-const settingsDataVersion = document.getElementById("settings-data-version");
-const statPeople = document.getElementById("stat-people");
-const statCouples = document.getElementById("stat-couples");
-const statMale = document.getElementById("stat-male");
-const statFemale = document.getElementById("stat-female");
-const statCucu = document.getElementById("stat-cucu");
-const statCicit = document.getElementById("stat-cicit");
-const statUpcomingName = document.getElementById("stat-upcoming-name");
-const statUpcomingMeta = document.getElementById("stat-upcoming-meta");
-const themePresetSelect = document.getElementById("theme-preset");
-const timelineGenSelect = document.getElementById("timeline-gen");
-const timelineMonthSelect = document.getElementById("timeline-month");
-const timelineGenderSelect = document.getElementById("timeline-gender");
-const timelineSortSelect = document.getElementById("timeline-sort");
-const timelineClearBtn = document.getElementById("timeline-clear");
-const viewTreeBtn = document.getElementById("view-tree-btn");
-const viewTimelineBtn = document.getElementById("view-timeline-btn");
-const timelineMoreBtn = document.getElementById("timeline-more-btn");
-const timelineMorePanel = document.getElementById("timeline-more-panel");
-const timelineActiveFilters = document.getElementById("timeline-active-filters");
-const focusViewBtn = document.getElementById("focus-view");
-const showAllBtn = document.getElementById("show-all");
-const mobileFocusViewBtn = document.getElementById("m-focus-view");
-const mobileShowAllBtn = document.getElementById("m-show-all");
-const viewInfo = document.getElementById("view-info");
-const viewInfoText = document.getElementById("view-info-text");
-const viewInfoShowAll = document.getElementById("view-info-show-all");
-const viewInfoFit = document.getElementById("view-info-fit");
-const viewInfoShowAllBtn = document.getElementById("view-info-show-all");
-const viewInfoFitBtn = document.getElementById("view-info-fit");
-const resetFocusBtn = document.getElementById("reset-focus");
-const quickJumpBtn = document.getElementById("quick-jump");
-const storyFocusActions = document.getElementById("story-focus-actions");
-const storyBreadcrumb = document.getElementById("story-breadcrumb");
-const expandParentsBtn = document.getElementById("expand-parents");
-const expandChildrenBtn = document.getElementById("expand-children");
-const expandSpousesBtn = document.getElementById("expand-spouses");
-const expandSiblingsBtn = document.getElementById("expand-siblings");
-const tipOverlay = document.getElementById("tip-overlay");
-const tipText = document.getElementById("tip-text");
-const tipCloseBtn = document.getElementById("tip-close");
-const tipHideCheckbox = document.getElementById("tip-hide");
-const tipHideLabel = document.getElementById("tip-hide-label");
-const showAllModal = document.getElementById("showall-modal");
-const showAllTitle = document.getElementById("showall-title");
-const showAllContinueBtn = document.getElementById("showall-continue");
-const showAllStayBtn = document.getElementById("showall-stay");
-const searchOverlay = document.getElementById("search-overlay");
-const searchOverlayInput = document.getElementById("search-overlay-input");
-const searchOverlayResults = document.getElementById("search-overlay-results");
-const searchOverlayClose = document.getElementById("search-overlay-close");
-const debugOverlay = document.getElementById("debug-overlay");
-const fatalError = document.getElementById("fatalError");
-const fatalReload = document.getElementById("fatalReload");
-const fatalClose = document.getElementById("fatalClose");
+/* KAMI Tree - Refactored Focus/Full View */
+(() => {
+  "use strict";
 
-function on(el, event, handler, options) {
-  if (!el) return;
-  el.addEventListener(event, handler, options);
-}
+  const APP_VERSION = "2026-02-10.4";
 
-function getMinimapEls() {
-  return {
-    minimap: document.getElementById("minimap"),
-    minimapViewport: document.getElementById("minimap-viewport"),
-    minimapHandle: document.getElementById("minimap-handle"),
-    minimapHint: document.getElementById("minimap-hint"),
-    minimapWrap: document.querySelector(".brand-minimap-wrap"),
-    minimapCanvas: document.getElementById("minimap-canvas")
-  };
-}
-
-const layoutConfig = {
-  cardWidth: 220,
-  cardGap: 16,
-  hGap: 40,
-  vGap: 180,
-  topPadding: 10,
-  leftPadding: 20,
-  labelColumnWidth: 120
-};
-
-const branchPalette = ["#4f8a6a", "#8bb8d4", "#c49b6c", "#c47a7a", "#6f8ac4", "#8a6cc4", "#6cc4a1"];
-const BRANCH_FILTER_ENABLED = false;
-const GENERATION_FILTER_ENABLED = true;
-const SOFT_PEACH_ROOT_ID = "p3";
-const SOFT_PEACH_COLOR = "var(--soft-peach)";
-const BABY_BLUE_ROOT_ID = "p5";
-const BABY_BLUE_COLOR = "var(--baby-blue)";
-const MINT_GREEN_ROOT_ID = "p7";
-const MINT_GREEN_COLOR = "var(--mint-green)";
-const LAVENDER_ROOT_ID = "p9";
-const LAVENDER_COLOR = "var(--lavender)";
-const VIRTUALIZE_THRESHOLD = 320;
-const STORAGE_KEY = "familyTreePrefs";
-const DATA_KEY = "familyTreeData";
-const FORCE_RESET = false;
-const MOBILE_CONTROLS_KEY = "ft_controls_collapsed";
-const APP_VERSION = "2026-02-10.1";
-
-const isMobileView = () => window.matchMedia("(max-width: 720px)").matches;
-
-let treeData = null;
-let peopleById = new Map();
-let layoutRoot = null;
-let nodesList = [];
-let maxDepth = 0;
-let scale = 1;
-let baseSize = { width: 0, height: 0 };
-let elementByPersonId = new Map();
-let elementByNodeId = new Map();
-let nodeByPersonId = new Map();
-let hiddenGenerations = new Set();
-let virtualizationEnabled = false;
-let renderQueued = false;
-let lastSearchResults = [];
-let selectedPersonId = "";
-let viewMode = "tree";
-let branchFilterValue = "all";
-let softPeachPeople = new Set();
-let babyBluePeople = new Set();
-let mintGreenPeople = new Set();
-let lavenderPeople = new Set();
-let forceFreshData = false;
-let recoveryAttempted = false;
-let lang = "ms";
-let compactMode = false;
-let pathMode = false;
-let controlsCollapsed = false;
-let themePreset = "default";
-let showLines = true;
-let cardScale = 1;
-let minimapEnabled = true;
-let dragToPan = true;
-let minimapInitialized = false;
-let defaultView = "tree";
-let showBirthdate = true;
-let showAge = true;
-let showTags = true;
-let timelineFilters = {
-  generation: "all",
-  month: "all",
-  gender: "all",
-  sort: "year"
-};
-let timelineMoreOpen = false;
-
-// Focus/full tree view state.
-let treeView = "focus";
-let visiblePeopleIds = new Set();
-let focusIncludeGrandparents = false;
-let searchActiveIndex = -1;
-let hideTip = false;
-let hasDataErrors = false;
-let debugMode = false;
-let lastDataError = "";
-const prefs = loadPrefs();
-const i18n = {
-  ms: {
-    appKicker: "Salasilah Keluarga",
-    appTitle: "Paparan Generasi Keluarga",
-    appSubtitle: "Semua ahli keluarga dalam satu pandangan yang jelas, mudah, dan mesra.",
-    searchLabel: "Carian nama",
-    searchGo: "Cari & Fokus",
-    viewTimeline: "Lihat Timeline",
-    viewTree: "Lihat Tree",
-    focusView: "Paparan Fokus",
-    showAll: "Tunjuk Semua",
-    viewInfoFocus: "Anda sedang dalam Mode Fokus ({shown} dipapar / Jumlah {total}).",
-    viewInfoShowAll: "Tunjuk Semua ({total} orang)",
-    fullTreeEnabled: "Paparan penuh diaktifkan. Guna carian untuk lompat.",
-    tipText: "Tip: Gunakan Carian untuk lompat ke nama. Mode Fokus untuk mudah faham. Tekan ‘Tunjuk Semua’ jika nak overview.",
-    tipHide: "Jangan tunjuk lagi",
-    tipOk: "OK",
-    showAllConfirm: "Paparan penuh mungkin berat untuk telefon. Teruskan?",
-    showAllContinue: "Teruskan",
-    showAllStay: "Kekal di Fokus",
-    resetFocus: "Reset Fokus",
-    openAll: "Buka Semua",
-    collapseG2: "Lipat ke G2",
-    expandLabel: "Luaskan",
-    expandParents: "Luaskan ibu bapa",
-    expandChildren: "Luaskan anak",
-    expandSpouses: "Luaskan pasangan",
-    expandSiblings: "Luaskan adik-beradik",
-    expandAdded: "Ditambah: {items}",
-    expandNone: "Tiada ahli ditambah",
-    quickJump: "Cari / Lompat",
-    lineageLabel: "Garis keturunan",
-    pathOn: "Sembunyi Garis",
-    pathOff: "Tunjuk Garis Keturunan",
-    birthYear: "Lahir",
-    compactOn: "Mode Penuh",
-    compactOff: "Mode Ringkas",
-    fit: "Fit Skrin",
-    zoomIn: "Zoom +",
-    zoomOut: "Zoom -",
-    zoomReset: "Reset",
-    themeToggle: "Cerah / Gelap",
-    langToggle: "BM / EN",
-    exportPng: "Image (JPEG)",
-    exportPdf: "File (PDF)",
-    branchLabel: "Tapis cabang",
-    generationLabel: "Generasi (Lipat/Buka)",
-    legendParentChild: "Garis sambungan ibu bapa \u2192 anak",
-    legendCouple: "Pasangan ditunjukkan secara selari",
-    storyTitle: "Cerita Keluarga",
-    storyEmpty: "Klik pada mana-mana ahli keluarga untuk melihat catatan panjang.",
-    spouseHusband: "Suami",
-    spouseWife: "Isteri",
-    timelineTitle: "Timeline Keluarga",
-    modalClose: "Tutup",
-    modalEdit: "Edit",
-    modalRelation: "Hubungan",
-    modalBirth: "Tarikh lahir",
-    modalDeath: "Tarikh meninggal",
-    modalNote: "Catatan",
-    modalStory: "Cerita",
-    modalFullName: "Nama penuh",
-    modalImage: "URL gambar",
-    modalShortNote: "Nota ringkas",
-    modalLongStory: "Cerita panjang",
-    modalCancel: "Batal",
-    modalSave: "Simpan",
-    modalDelete: "Padam",
-    modalDeleteConfirm: "Padam ahli ini? Tindakan ini akan buang hubungan pasangan/anak.",
-    legendGeneration: "Generasi",
-    branchAll: "Semua cabang",
-    branchName: "Cabang {n}",
-    parentNone: "Tiada (jadi root)",
-    genAll: "Tunjuk Semua",
-    searchNone: "Tiada nama ditemui",
-    datesUnknown: "Tarikh tidak dinyatakan",
-    bornPrefix: "Lahir: ",
-    diedPrefix: "Meninggal: ",
-    loadFail: "Gagal memuatkan data keluarga.",
-    exportDate: "Tarikh eksport: {date}",
-    exportPngFail: "Gagal export PNG: library tidak tersedia.",
-    exportPdfFail: "Gagal export PDF: library tidak tersedia.",
-    ageLabel: "Umur",
-    minimapTitle: "Minimap",
-    minimapHint: "Klik pada kotak kecil untuk lompat lokasi. Kotak putih menunjukkan kawasan semasa.",
-    minimapShow: "Buka Minimap",
-    firstNameLabel: "Nama pertama",
-    lastNameLabel: "Nama akhir",
-    genderLabel: "Jantina",
-    genderMale: "Lelaki",
-    genderFemale: "Perempuan",
-    controlsToggleOpen: "Buka Panel",
-    controlsToggleClose: "Tutup Panel",
-    resetView: "Reset View",
-    loading: "Memuatkan data...",
-    clearCache: "Clear Cache",
-    clearCacheConfirm: "Padam cache untuk laman ini? Data tersimpan di pelayar akan dipadam.",
-    okBtn: "OK",
-    errStructure: "Struktur utama mesti ada `people` dan `unions`.",
-    errPersonNoId: "Ada ahli tanpa id.",
-    errDuplicateId: "ID berulang: {id}",
-    errSelfMissing: "selfId tidak wujud dalam senarai people: {id}",
-    errUnionNoId: "Ada union tanpa id.",
-    errPartner1Missing: "Union {union}: Partner1 tidak wujud: {id}",
-    errPartner2Missing: "Union {union}: Partner2 tidak wujud: {id}",
-    errChildMissing: "Union {union}: Anak tidak wujud: {id}",
-    errChildMultiple: "Anak {id} terikat pada lebih satu union ({unions}).",
-    mobileActions: "Aksi lain",
-    mobilePick: "Pilih aksi...",
-    validateOk: "Data sah. Tiada ralat ditemui.",
-    validateErr: "Ralat data ditemui:",
-    searchPlaceholder: "Cari nama ahli keluarga...",
-    statsPeople: "Jumlah Ahli",
-    statsCouples: "Jumlah Pasangan",
-    statsGender: "Jantina",
-    statsDescendants: "Keturunan",
-    statsCucu: "Cucu",
-    statsCicit: "Cicit",
-    statsMale: "Lelaki",
-    statsFemale: "Perempuan",
-    statsUpcoming: "Ulang Tahun Terdekat",
-    statsUpcomingEmpty: "Tiada data",
-    statsUpcomingToday: "Hari ini",
-    timelineGenLabel: "Generasi",
-    timelineMonth: "Bulan Lahir",
-    timelineGender: "Jantina",
-    timelineGenderAll: "Semua",
-    timelineGenderMale: "Lelaki",
-    timelineGenderFemale: "Perempuan",
-    timelineSort: "Susun",
-    timelineSortYear: "Ikut Tahun",
-    timelineSortAge: "Ikut Umur",
-    timelineSortAlpha: "Ikut Abjad",
-    timelineSortMonth: "Ikut Bulan",
-    timelineSortGender: "Ikut Jantina",
-    timelineSortParent: "Ikut Ibu Bapa",
-    timelineClear: "Reset",
-    timelineMore: "Tapis lagi",
-    timelineLess: "Tutup tapis",
-    timelineResetAll: "Reset semua",
-    themePreset: "Tema",
-    themeDefault: "Default",
-    themeHeritage: "Heritage",
-    themeOcean: "Ocean",
-    themeSunset: "Sunset",
-    exportMenu: "Download",
-    settingsTitle: "Tetapan",
-    settingsDisplay: "Paparan",
-    settingsNav: "Navigasi",
-    settingsTools: "Alat",
-    settingsAbout: "Tentang",
-    settingsCompact: "Compact Mode",
-    settingsLines: "Tunjuk Garisan",
-    settingsCardSize: "Saiz Kad",
-    settingsSizeSmall: "Kecil",
-    settingsSizeNormal: "Normal",
-    settingsSizeLarge: "Besar",
-    settingsMinimap: "Minimap",
-    settingsDrag: "Drag untuk Pan",
-    settingsDefaultView: "Paparan Lalai",
-    settingsViewTree: "Tree",
-    settingsViewTimeline: "Timeline",
-    settingsReset: "Reset tetapan",
-    settingsShowBirthdate: "Tarikh Lahir",
-    settingsShowAge: "Umur",
-    settingsShowTags: "Tag/Nota",
-    settingsClearData: "Padam semua data",
-    settingsDataVersion: "Versi data",
-    settingsClose: "Tutup"
-  },
-  en: {
-    appKicker: "Family Lineage",
-    appTitle: "Family Generation View",
-    appSubtitle: "All family members in one clear, simple, friendly view.",
-    searchLabel: "Name search",
-    searchGo: "Search & Focus",
-    viewTimeline: "Timeline View",
-    viewTree: "Tree View",
-    focusView: "Focus View",
-    showAll: "Show All",
-    viewInfoFocus: "You''re viewing Focus Mode ({shown} shown / Total {total}).",
-    viewInfoShowAll: "Show All ({total} people)",
-    fullTreeEnabled: "Full Tree enabled. Use Search to jump.",
-    tipText: "Tip: Use Search to jump to a name. Focus View keeps things simple. Tap “Show All” for an overview.",
-    tipHide: "Don't show again",
-    tipOk: "OK",
-    showAllConfirm: "Full view may be heavy on phones. Continue?",
-    showAllContinue: "Continue",
-    showAllStay: "Stay in Focus",
-    resetFocus: "Reset Focus",
-    openAll: "Open All",
-    collapseG2: "Collapse to G2",
-    expandLabel: "Expand",
-    expandParents: "Expand parents",
-    expandChildren: "Expand children",
-    expandSpouses: "Expand spouses",
-    expandSiblings: "Expand siblings",
-    expandAdded: "Added: {items}",
-    expandNone: "No relatives added",
-    quickJump: "Search / Jump",
-    lineageLabel: "Lineage",
-    birthYear: "Born",
-    compactOn: "Full Mode",
-    compactOff: "Compact Mode",
-    pathOn: "Hide Path",
-    pathOff: "My Lineage",
-    fit: "Fit Screen",
-    zoomIn: "Zoom +",
-    zoomOut: "Zoom -",
-    zoomReset: "Reset",
-    themeToggle: "Light / Dark",
-    langToggle: "EN / BM",
-    exportPng: "Image (JPEG)",
-    exportPdf: "File (PDF)",
-    branchLabel: "Filter branch",
-    generationLabel: "Generation (Collapse/Expand)",
-    legendParentChild: "Parent \u2192 child connection",
-    legendCouple: "Partners shown side by side",
-    storyTitle: "Family Story",
-    storyEmpty: "Tap any family member to see detailed notes.",
-    spouseHusband: "Husband",
-    spouseWife: "Wife",
-    timelineTitle: "Family Timeline",
-    modalClose: "Close",
-    modalEdit: "Edit",
-    modalRelation: "Relation",
-    modalBirth: "Birth date",
-    modalDeath: "Death date",
-    modalNote: "Notes",
-    modalStory: "Story",
-    modalFullName: "Full name",
-    modalImage: "Image URL",
-    modalShortNote: "Short note",
-    modalLongStory: "Long story",
-    modalCancel: "Cancel",
-    modalSave: "Save",
-    modalDelete: "Delete",
-    modalDeleteConfirm: "Delete this person? This will remove partner/child links.",
-    legendGeneration: "Generation",
-    branchAll: "All branches",
-    branchName: "Branch {n}",
-    parentNone: "None (as root)",
-    genAll: "Show All",
-    searchNone: "No names found",
-    datesUnknown: "Date not specified",
-    bornPrefix: "Born: ",
-    diedPrefix: "Died: ",
-    loadFail: "Failed to load family data.",
-    exportDate: "Export date: {date}",
-    exportPngFail: "PNG export failed: library not available.",
-    exportPdfFail: "PDF export failed: library not available.",
-    ageLabel: "Age",
-    minimapTitle: "Minimap",
-    minimapHint: "Tap the minimap to jump. The white box shows your current view.",
-    minimapShow: "Show Minimap",
-    firstNameLabel: "First name",
-    lastNameLabel: "Last name",
-    genderLabel: "Gender",
-    genderMale: "Male",
-    genderFemale: "Female",
-    controlsToggleOpen: "Show Panel",
-    controlsToggleClose: "Hide Panel",
-    resetView: "Reset View",
-    loading: "Loading data...",
-    clearCache: "Clear Cache",
-    clearCacheConfirm: "Clear cache for this site? This will remove data stored in your browser.",
-    okBtn: "OK",
-    errStructure: "Root structure must include `people` and `unions`.",
-    errPersonNoId: "A person is missing an id.",
-    errDuplicateId: "Duplicate ID: {id}",
-    errSelfMissing: "selfId not found in people: {id}",
-    errUnionNoId: "A union is missing an id.",
-    errPartner1Missing: "Union {union}: Partner1 not found: {id}",
-    errPartner2Missing: "Union {union}: Partner2 not found: {id}",
-    errChildMissing: "Union {union}: Child not found: {id}",
-    errChildMultiple: "Child {id} is linked to multiple unions ({unions}).",
-    mobileActions: "More actions",
-    mobilePick: "Select action...",
-    validateOk: "Data is valid. No issues found.",
-    validateErr: "Data issues found:",
-    searchPlaceholder: "Search family member...",
-    statsPeople: "Total People",
-    statsCouples: "Couples",
-    statsGender: "Gender",
-    statsDescendants: "Descendants",
-    statsCucu: "Grandkids",
-    statsCicit: "Great-grandkids",
-    statsMale: "Male",
-    statsFemale: "Female",
-    statsUpcoming: "Upcoming Birthday",
-    statsUpcomingEmpty: "No data",
-    statsUpcomingToday: "Today",
-    timelineGenLabel: "Generation",
-    timelineMonth: "Birth Month",
-    timelineGender: "Gender",
-    timelineGenderAll: "All",
-    timelineGenderMale: "Male",
-    timelineGenderFemale: "Female",
-    timelineSort: "Sort",
-    timelineSortYear: "By Year",
-    timelineSortAge: "By Age",
-    timelineSortAlpha: "Alphabetical",
-    timelineSortMonth: "By Month",
-    timelineSortGender: "By Gender",
-    timelineSortParent: "By Parent",
-    timelineClear: "Reset",
-    timelineMore: "More filters",
-    timelineLess: "Less filters",
-    timelineResetAll: "Reset all",
-    themePreset: "Theme",
-    themeDefault: "Default",
-    themeHeritage: "Heritage",
-    themeOcean: "Ocean",
-    themeSunset: "Sunset",
-    exportMenu: "Download",
-    settingsTitle: "Settings",
-    settingsDisplay: "Display",
-    settingsNav: "Navigation",
-    settingsTools: "Tools",
-    settingsAbout: "About",
-    settingsCompact: "Compact Mode",
-    settingsLines: "Show Lines",
-    settingsCardSize: "Card Size",
-    settingsSizeSmall: "Small",
-    settingsSizeNormal: "Normal",
-    settingsSizeLarge: "Large",
-    settingsMinimap: "Minimap",
-    settingsDrag: "Drag to Pan",
-    settingsDefaultView: "Default View",
-    settingsViewTree: "Tree",
-    settingsViewTimeline: "Timeline",
-    settingsReset: "Reset settings",
-    settingsShowBirthdate: "Show Birthdate",
-    settingsShowAge: "Show Age",
-    settingsShowTags: "Show Tags",
-    settingsClearData: "Clear all data",
-    settingsDataVersion: "Data version",
-    settingsClose: "Close"
-  }
-};
-
-function formatText(template, vars = {}) {
-  return template.replace(/\{(\w+)\}/g, (_, key) => (vars[key] !== undefined ? vars[key] : ""));
-}
-
-function setTreeStatus(message = "", isError = false) {
-  if (!treeStatus) return;
-  treeStatus.textContent = message;
-  treeStatus.hidden = !message;
-  treeStatus.classList.toggle("is-error", isError);
-}
-
-let statusTimer = null;
-function flashTreeStatus(message) {
-  if (!message) return;
-  setTreeStatus(message, false);
-  if (statusTimer) clearTimeout(statusTimer);
-  statusTimer = setTimeout(() => {
-    setTreeStatus("");
-  }, 2500);
-}
-
-function updateDebugOverlay(info) {
-  if (!debugOverlay || !debugMode) return;
-  debugOverlay.hidden = false;
-  debugOverlay.textContent = info;
-}
-
-function formatError(err) {
-  if (!err) return "Unknown error";
-  if (typeof err === "string") return err;
-  const message = err.message || String(err);
-  const stack = err.stack ? `\n${err.stack}` : "";
-  return `${message}${stack}`;
-}
-
-function showFatalError(err) {
-  console.error(err);
-  lastDataError = formatError(err);
-  if (fatalError) {
-    const msg = fatalError.querySelector(".msg");
-    if (msg) msg.textContent = lastDataError;
-    fatalError.hidden = false;
-    fatalError.classList.add("is-open");
-    fatalError.setAttribute("aria-hidden", "false");
-  }
-  if (treeCanvas) {
-    treeCanvas.textContent = i18n[lang]?.loadFail || "Error";
-  }
-  setTreeStatus(lastDataError || i18n[lang]?.loadFail || "Error", true);
-}
-
-function closeFatalError() {
-  if (!fatalError) return;
-  fatalError.classList.remove("is-open");
-  fatalError.setAttribute("aria-hidden", "true");
-  fatalError.hidden = true;
-}
-
-async function clearSiteCache() {
-  const t = i18n[lang] || i18n.ms;
-  if (!confirm(t.clearCacheConfirm)) return;
-  try {
-    localStorage.clear();
-  } catch {
-    // ignore storage errors
-  }
-  try {
-    sessionStorage.clear();
-  } catch {
-    // ignore storage errors
-  }
-  window.location.reload();
-}
-
-
-function applyThemePreset() {
-  if (!document.body || !app) return;
-  if (!themePreset || themePreset === "default") {
-    document.body.removeAttribute("data-preset");
-    app.removeAttribute("data-preset");
-    return;
-  }
-  document.body.dataset.preset = themePreset;
-  app.dataset.preset = themePreset;
-}
-
-function applyCardScale() {
-  const next = Math.min(1.15, Math.max(0.85, Number(cardScale) || 1));
-  cardScale = next;
-  document.body.style.setProperty("--card-scale", String(next));
-  layoutConfig.cardWidth = Math.round(220 * next);
-  layoutConfig.cardGap = Math.round(16 * next);
-  if (app) {
-    app.style.setProperty("--card-width", `${layoutConfig.cardWidth}px`);
-    app.style.setProperty("--card-gap", `${layoutConfig.cardGap}px`);
-  }
-}
-
-function applyMinimapState() {
-  if (!document.body) return;
-  document.body.classList.toggle("minimap-disabled", !minimapEnabled);
-  if (!minimapEnabled) return;
-  updateMinimap();
-}
-
-function applyDragToPanState() {
-  if (!treeWrap) return;
-  treeWrap.classList.toggle("drag-disabled", !dragToPan);
-}
-
-function applyLinesState() {
-  if (!showLines) {
-    if (treeLines) treeLines.innerHTML = "";
-    return;
-  }
-  scheduleRender();
-}
-
-function applyDetailsVisibility() {
-  document.body.classList.toggle("hide-birthdate", !showBirthdate);
-  document.body.classList.toggle("hide-age", !showAge);
-  document.body.classList.toggle("hide-tags", !showTags);
-}
-
-function openSettingsModal() {
-  if (!settingsModal) return;
-  settingsModal.classList.add("is-open");
-  settingsModal.setAttribute("aria-hidden", "false");
-}
-
-function closeSettingsModal() {
-  if (!settingsModal) return;
-  settingsModal.classList.remove("is-open");
-  settingsModal.setAttribute("aria-hidden", "true");
-}
-
-function toggleControlsCollapsed(nextState) {
-  const target = typeof nextState === "boolean" ? nextState : !controlsCollapsed;
-  controlsCollapsed = target;
-  document.body.classList.toggle("controls-collapsed", controlsCollapsed);
-  applyLanguage();
-  if (isMobileView()) {
-    localStorage.setItem(MOBILE_CONTROLS_KEY, controlsCollapsed ? "1" : "0");
-  }
-  updateSheetHandleState();
-  savePrefs();
-}
-
-function updateSheetHandleState() {
-  if (!bottomSheetHandle) return;
-  bottomSheetHandle.setAttribute("aria-expanded", (!controlsCollapsed).toString());
-}
-
-function ensureTreeVisible() {
-  if (!treeCanvas || !treeData?.people?.length) return;
-  if (treeCanvas.children.length > 0) return;
-  scale = 1;
-  hiddenGenerations.clear();
-  branchFilterValue = "all";
-  viewMode = "tree";
-  buildLayout();
-  applyViewMode();
-  renderScene();
-  applyZoom();
-  if (treeWrap) treeWrap.scrollTo({ left: 0, top: 0 });
-  setTreeStatus("");
-}
-
-function updateStats() {
-  if (!treeData) return;
-  const t = i18n[lang] || i18n.ms;
-  const peopleCount = treeData.people.length;
-  const couplesCount = treeData.unions.length;
-  let maleCount = 0;
-  let femaleCount = 0;
-  let cucuCount = 0;
-  let cicitCount = 0;
-  treeData.people.forEach((person) => {
-    const gender = detectGenderFromName(person.name);
-    if (gender === "male") maleCount += 1;
-    if (gender === "female") femaleCount += 1;
-    if (person.relation === "Cucu") cucuCount += 1;
-    if (person.relation === "Cicit") cicitCount += 1;
-  });
-  if (statPeople) statPeople.textContent = String(peopleCount);
-  if (statCouples) statCouples.textContent = String(couplesCount);
-  if (statMale) statMale.textContent = String(maleCount);
-  if (statFemale) statFemale.textContent = String(femaleCount);
-  if (statCucu) statCucu.textContent = String(cucuCount);
-  if (statCicit) statCicit.textContent = String(cicitCount);
-
-  if (statUpcomingName || statUpcomingMeta) {
-    const today = new Date();
-    const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    let best = null;
-    treeData.people.forEach((person) => {
-      const birthDate = parseDateValue(person.birth);
-      if (!birthDate) return;
-      const next = new Date(todayMid.getFullYear(), birthDate.getMonth(), birthDate.getDate());
-      if (next < todayMid) next.setFullYear(next.getFullYear() + 1);
-      const diff = next.getTime() - todayMid.getTime();
-      const name = formatDisplayName(person.name);
-      if (!best || diff < best.diff || (diff === best.diff && name.localeCompare(best.name) < 0)) {
-        best = { person, birthDate, next, diff, name };
-      }
-    });
-
-    if (!best) {
-      if (statUpcomingName) statUpcomingName.textContent = t.statsUpcomingEmpty || "-";
-      if (statUpcomingMeta) statUpcomingMeta.textContent = "";
-    } else {
-      const monthsMs = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogos", "Sep", "Okt", "Nov", "Dis"];
-      const monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-      const monthLabels = lang === "en" ? monthsEn : monthsMs;
-      const day = best.next.getDate();
-      const monthLabel = monthLabels[best.next.getMonth()];
-      const age = calcAge(best.birthDate, best.next);
-      const daysAway = Math.round((best.next.getTime() - todayMid.getTime()) / 86400000);
-      let meta = `${day} ${monthLabel}`;
-      if (age !== null) {
-        meta += ` | ${age} ${lang === "en" ? "yrs" : "thn"}`;
-      }
-      if (daysAway === 0) {
-        meta += ` | ${t.statsUpcomingToday}`;
-      } else if (daysAway > 0) {
-        meta += ` | ${daysAway} ${lang === "en" ? "days" : "hari"} ${lang === "en" ? "to go" : "lagi"}`;
-      }
-      if (statUpcomingName) statUpcomingName.textContent = best.name || "-";
-      if (statUpcomingMeta) statUpcomingMeta.textContent = meta;
-    }
-  }
-}
-
-function populateTimelineFilters() {
-  if (!timelineGenSelect) return;
-  const t = i18n[lang] || i18n.ms;
-  const current = timelineFilters.generation;
-  timelineGenSelect.innerHTML = "";
-  const optAll = document.createElement("option");
-  optAll.value = "all";
-  optAll.textContent = t.genAll;
-  timelineGenSelect.appendChild(optAll);
-  for (let i = 1; i <= maxDepth; i += 1) {
-    const opt = document.createElement("option");
-    opt.value = String(i);
-    opt.textContent = `G${i}`;
-    timelineGenSelect.appendChild(opt);
-  }
-  timelineGenSelect.value = current && (current === "all" || Number(current) <= maxDepth) ? current : "all";
-  populateTimelineMonths();
-}
-
-function populateTimelineMonths() {
-  if (!timelineMonthSelect) return;
-  const monthsMs = ["Jan", "Feb", "Mac", "Apr", "Mei", "Jun", "Jul", "Ogos", "Sep", "Okt", "Nov", "Dis"];
-  const monthsEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  const monthLabels = lang === "en" ? monthsEn : monthsMs;
-  timelineMonthSelect.innerHTML = "";
-  const optAll = document.createElement("option");
-  optAll.value = "all";
-  optAll.textContent = lang === "en" ? "All months" : "Semua bulan";
-  timelineMonthSelect.appendChild(optAll);
-  monthLabels.forEach((label, idx) => {
-    const opt = document.createElement("option");
-    opt.value = String(idx + 1);
-    opt.textContent = label;
-    timelineMonthSelect.appendChild(opt);
-  });
-  timelineMonthSelect.value = timelineFilters.month || "all";
-}
-
-function updateTimelineActiveFilters() {
-  if (!timelineActiveFilters) return;
-  const t = i18n[lang] || i18n.ms;
-  const defaults = { generation: "all", month: "all", gender: "all", sort: "year" };
-  const chips = [];
-
-  const labelMap = {
-    generation: t.timelineGenLabel,
-    month: t.timelineMonth,
-    gender: t.timelineGender,
-    sort: t.timelineSort
+  const dom = {
+    app: document.getElementById("app"),
+    toolbar: document.getElementById("toolbar"),
+    treeArea: document.querySelector(".tree-area"),
+    searchInput: document.getElementById("search-input"),
+    searchResults: document.getElementById("search-results"),
+    viewFocusBtn: document.getElementById("view-focus"),
+    viewFullBtn: document.getElementById("view-full"),
+    centerBtn: document.getElementById("center-selected"),
+    resetBtn: document.getElementById("reset-view"),
+    exportPngBtn: document.getElementById("export-png"),
+    exportPdfBtn: document.getElementById("export-pdf"),
+    insightsBtn: document.getElementById("toggle-insights"),
+    focusView: document.getElementById("focus-view"),
+    fullView: document.getElementById("full-view"),
+    fullList: document.getElementById("full-tree-list"),
+    fullListInner: document.getElementById("full-tree-inner"),
+    fullTopSpacer: document.getElementById("full-tree-top"),
+    fullBottomSpacer: document.getElementById("full-tree-bottom"),
+    fullGenSelect: document.getElementById("full-gen"),
+    branchOnlyBtn: document.getElementById("branch-only"),
+    expandAllBtn: document.getElementById("expand-all"),
+    collapseAllBtn: document.getElementById("collapse-all"),
+    breadcrumbs: document.getElementById("breadcrumbs"),
+    zoomInBtn: document.getElementById("zoom-in"),
+    zoomOutBtn: document.getElementById("zoom-out"),
+    zoomResetBtn: document.getElementById("zoom-reset"),
+    insightsPanel: document.getElementById("insights"),
+    statsPeople: document.getElementById("stat-people"),
+    statsCouples: document.getElementById("stat-couples"),
+    statsMale: document.getElementById("stat-male"),
+    statsFemale: document.getElementById("stat-female"),
+    statsCucu: document.getElementById("stat-cucu"),
+    statsCicit: document.getElementById("stat-cicit"),
+    statsUpcomingName: document.getElementById("stat-upcoming-name"),
+    statsUpcomingMeta: document.getElementById("stat-upcoming-meta"),
+    drawer: document.getElementById("detail-drawer"),
+    drawerClose: document.getElementById("drawer-close"),
+    drawerBody: document.getElementById("drawer-body"),
+    drawerTitle: document.getElementById("drawer-title"),
+    drawerCta: document.getElementById("drawer-cta"),
+    drawerFocus: document.getElementById("drawer-focus"),
+    status: document.getElementById("tree-status"),
+    fatalError: document.getElementById("fatalError"),
+    fatalClose: document.getElementById("fatalClose"),
+    fatalReload: document.getElementById("fatalReload")
   };
 
-  const getSelectText = (select, value) => {
-    if (!select) return value;
-    const opt = select.querySelector(`option[value="${value}"]`);
-    return opt ? opt.textContent : value;
-  };
-
-  if (timelineFilters.generation !== defaults.generation) {
-    chips.push({
-      key: "generation",
-      text: `${labelMap.generation}: ${getSelectText(timelineGenSelect, timelineFilters.generation)} ✕`
-    });
-  }
-  if (timelineFilters.month !== defaults.month) {
-    chips.push({
-      key: "month",
-      text: `${labelMap.month}: ${getSelectText(timelineMonthSelect, timelineFilters.month)} ✕`
-    });
-  }
-  if (timelineFilters.gender !== defaults.gender) {
-    chips.push({
-      key: "gender",
-      text: `${labelMap.gender}: ${getSelectText(timelineGenderSelect, timelineFilters.gender)} ✕`
-    });
-  }
-  if (timelineFilters.sort !== defaults.sort) {
-    chips.push({
-      key: "sort",
-      text: `${labelMap.sort}: ${getSelectText(timelineSortSelect, timelineFilters.sort)} ✕`
-    });
-  }
-
-  timelineActiveFilters.innerHTML = "";
-  if (!chips.length) {
-    timelineActiveFilters.hidden = true;
-    return;
-  }
-  timelineActiveFilters.hidden = false;
-  chips.forEach((chip) => {
-    const btn = document.createElement("button");
-    btn.type = "button";
-    btn.className = "chip";
-    btn.dataset.filter = chip.key;
-    btn.textContent = chip.text;
-    btn.addEventListener("click", () => {
-      if (chip.key === "generation") {
-        timelineFilters.generation = defaults.generation;
-        if (timelineGenSelect) timelineGenSelect.value = defaults.generation;
-      }
-      if (chip.key === "month") {
-        timelineFilters.month = defaults.month;
-        if (timelineMonthSelect) timelineMonthSelect.value = defaults.month;
-      }
-      if (chip.key === "gender") {
-        timelineFilters.gender = defaults.gender;
-        if (timelineGenderSelect) timelineGenderSelect.value = defaults.gender;
-      }
-      if (chip.key === "sort") {
-        timelineFilters.sort = defaults.sort;
-        if (timelineSortSelect) timelineSortSelect.value = defaults.sort;
-      }
-      renderTimeline();
-      updateTimelineActiveFilters();
-    });
-    timelineActiveFilters.appendChild(btn);
-  });
-
-  const resetAll = document.createElement("button");
-  resetAll.type = "button";
-  resetAll.className = "chip reset-all";
-  resetAll.textContent = t.timelineResetAll;
-  resetAll.addEventListener("click", () => {
-    timelineFilters = { generation: "all", month: "all", gender: "all", sort: "year" };
-    if (timelineGenSelect) timelineGenSelect.value = "all";
-    if (timelineMonthSelect) timelineMonthSelect.value = "all";
-    if (timelineGenderSelect) timelineGenderSelect.value = "all";
-    if (timelineSortSelect) timelineSortSelect.value = "year";
-    renderTimeline();
-    updateTimelineActiveFilters();
-  });
-  timelineActiveFilters.appendChild(resetAll);
-}
-
-function updateTimelineMoreState(nextState) {
-  if (!timelineMoreBtn || !timelineMorePanel) return;
-  const t = i18n[lang] || i18n.ms;
-  if (typeof nextState === "boolean") timelineMoreOpen = nextState;
-  timelineMorePanel.classList.toggle("is-open", timelineMoreOpen);
-  timelineMorePanel.setAttribute("aria-hidden", timelineMoreOpen ? "false" : "true");
-  timelineMoreBtn.setAttribute("aria-expanded", timelineMoreOpen ? "true" : "false");
-  timelineMoreBtn.textContent = timelineMoreOpen ? t.timelineLess : t.timelineMore;
-}
-
-function updateViewSwitch() {
-  if (viewTreeBtn) viewTreeBtn.classList.toggle("is-active", viewMode === "tree");
-  if (viewTimelineBtn) viewTimelineBtn.classList.toggle("is-active", viewMode === "timeline");
-}
-
-function getPersonDepthMap() {
-  const map = new Map();
-  nodesList.forEach((node) => {
-    if (node.type === "person") map.set(node.personId, node.depth);
-    if (node.type === "union") {
-      if (node.partner1) map.set(node.partner1, node.depth);
-      if (node.partner2) map.set(node.partner2, node.depth);
-    }
-  });
-  return map;
-}
-
-function clearSelectionHighlight() {
-  document.querySelectorAll(".person-card.is-selected, .person-card.is-parent, .person-card.is-child, .person-card.is-partner")
-    .forEach((el) => el.classList.remove("is-selected", "is-parent", "is-child", "is-partner"));
-}
-
-function applySelectionHighlight(personId) {
-  if (!personId) {
-    clearSelectionHighlight();
-    return;
-  }
-  clearSelectionHighlight();
-  const parents = new Set();
-  const partners = new Set();
-  const children = new Set();
-
-  const parentUnion = treeData.unions.find((u) => (u.children || []).includes(personId));
-  if (parentUnion) {
-    if (parentUnion.partner1) parents.add(parentUnion.partner1);
-    if (parentUnion.partner2) parents.add(parentUnion.partner2);
-  }
-
-  treeData.unions.forEach((u) => {
-    if (u.partner1 === personId || u.partner2 === personId) {
-      if (u.partner1 && u.partner1 !== personId) partners.add(u.partner1);
-      if (u.partner2 && u.partner2 !== personId) partners.add(u.partner2);
-      (u.children || []).forEach((cid) => children.add(cid));
-    }
-  });
-
-  const selectedGroup = elementByPersonId.get(personId);
-  if (selectedGroup) {
-    const selectedCard = selectedGroup.querySelector(`.person-card[data-person-id="${personId}"]`);
-    if (selectedCard) selectedCard.classList.add("is-selected");
-  }
-
-  const applyClass = (ids, className) => {
-    ids.forEach((id) => {
-      const group = elementByPersonId.get(id);
-      if (!group) return;
-      const card = group.querySelector(`.person-card[data-person-id="${id}"]`);
-      if (card) card.classList.add(className);
-    });
-  };
-
-  applyClass(parents, "is-parent");
-  applyClass(children, "is-child");
-  applyClass(partners, "is-partner");
-}
-
-
-
-function initFromData(data) {
-  treeData = data;
-  peopleById = new Map(treeData.people.map((p) => [p.id, p]));
-  const dataErrors = validateTreeData(treeData);
-  if (dataErrors.length > 0) {
-    hasDataErrors = true;
-    console.warn("Tree data issues:", dataErrors);
-    setTreeStatus(dataErrors.slice(0, 3).join(" | "), true);
-    if (treeData.selfId && !peopleById.has(treeData.selfId)) {
-      treeData.selfId = treeData.people?.[0]?.id || "";
-    }
-    if (!treeData.people?.length) return false;
-  } else {
-    hasDataErrors = false;
-  }
-  softPeachPeople = computeBranchPeople(SOFT_PEACH_ROOT_ID);
-  babyBluePeople = computeBranchPeople(BABY_BLUE_ROOT_ID);
-  mintGreenPeople = computeBranchPeople(MINT_GREEN_ROOT_ID);
-  lavenderPeople = computeBranchPeople(LAVENDER_ROOT_ID);
-  if (storyPanel) storyPanel.hidden = true;
-  if (app) app.classList.remove("story-open");
-
-  if (prefs.theme) {
-    app.dataset.theme = prefs.theme;
-    document.body.dataset.theme = prefs.theme;
-  } else {
-    document.body.dataset.theme = app.dataset.theme || "light";
-  }
-
-  if (prefs.scale) scale = prefs.scale;
-  hiddenGenerations.clear();
-  if (prefs.viewMode) viewMode = prefs.viewMode;
-  if (prefs.treeView === "full" || prefs.treeView === "focus") treeView = prefs.treeView;
-  if (prefs.focusIncludeGrandparents !== undefined) focusIncludeGrandparents = Boolean(prefs.focusIncludeGrandparents);
-  if (prefs.hideTip !== undefined) hideTip = Boolean(prefs.hideTip);
-  if (prefs.branchFilter) branchFilterValue = prefs.branchFilter;
-  if (prefs.lang) lang = prefs.lang;
-  if (prefs.compactMode) compactMode = true;
-  if (prefs.pathMode) pathMode = true;
-  if (isMobileView()) {
-    const storedCollapse = localStorage.getItem(MOBILE_CONTROLS_KEY);
-    if (storedCollapse === null) {
-      controlsCollapsed = true;
-      localStorage.setItem(MOBILE_CONTROLS_KEY, "1");
-    } else {
-      controlsCollapsed = storedCollapse === "1";
-    }
-  } else {
-    const hasControlsPref = Object.prototype.hasOwnProperty.call(prefs, "controlsCollapsed");
-    controlsCollapsed = hasControlsPref ? Boolean(prefs.controlsCollapsed) : false;
-  }
-  if (prefs.themePreset) themePreset = prefs.themePreset;
-  if (prefs.showLines !== undefined) showLines = Boolean(prefs.showLines);
-  if (prefs.cardScale) cardScale = Number(prefs.cardScale) || 1;
-  if (prefs.minimapEnabled !== undefined) minimapEnabled = Boolean(prefs.minimapEnabled);
-  if (prefs.dragToPan !== undefined) dragToPan = Boolean(prefs.dragToPan);
-  if (prefs.showBirthdate !== undefined) showBirthdate = Boolean(prefs.showBirthdate);
-  if (prefs.showAge !== undefined) showAge = Boolean(prefs.showAge);
-  if (prefs.showTags !== undefined) showTags = Boolean(prefs.showTags);
-  if (prefs.defaultView) defaultView = prefs.defaultView;
-  if (!BRANCH_FILTER_ENABLED) branchFilterValue = "all";
-  if (!GENERATION_FILTER_ENABLED) hiddenGenerations.clear();
-
-  applyCardScale();
-  buildLayout();
-  if (treeView === "full") {
-    hiddenGenerations.clear();
-    branchFilterValue = "all";
-    visiblePeopleIds = new Set(treeData.people.map((p) => p.id));
-  } else {
-    treeView = "focus";
-    visiblePeopleIds = computeVisibleSetForFocus();
-  }
-  updateStats();
-  populateTimelineFilters();
-  if (nodesList.length === 0) {
-    forceFreshData = true;
-  }
-  if (branchFilterValue !== "all") {
-    const maxBranch = layoutRoot?.children?.length || 0;
-    if (Number(branchFilterValue) >= maxBranch) {
-      branchFilterValue = "all";
-      savePrefs();
-    }
-  }
-  if (hiddenGenerations.size >= maxDepth) {
-    hiddenGenerations.clear();
-    savePrefs();
-  }
-  buildGenerationControls();
-  buildBranchFilter();
-  if (defaultView) viewMode = defaultView;
-  applyLanguage();
-  applyThemePreset();
-  applyMinimapState();
-  applyDragToPanState();
-  applyLinesState();
-  applyDetailsVisibility();
-  if (tipHideCheckbox) tipHideCheckbox.checked = hideTip;
-  if (themePresetSelect) themePresetSelect.value = themePreset;
-  if (settingsCardScale) settingsCardScale.value = String(cardScale);
-  if (settingsCompact) settingsCompact.checked = compactMode;
-  if (settingsLines) settingsLines.checked = showLines;
-  if (settingsMinimap) settingsMinimap.checked = minimapEnabled;
-  if (settingsDrag) settingsDrag.checked = dragToPan;
-  if (settingsShowBirthdate) settingsShowBirthdate.checked = showBirthdate;
-  if (settingsShowAge) settingsShowAge.checked = showAge;
-  if (settingsShowTags) settingsShowTags.checked = showTags;
-  if (settingsDefaultView) settingsDefaultView.value = viewMode;
-  if (settingsDataVersion) settingsDataVersion.textContent = treeData?.dataVersion || "-";
-  document.body.classList.toggle("compact", compactMode);
-  document.body.classList.toggle("controls-collapsed", controlsCollapsed);
-  updateSheetHandleState();
-  if (!timelineSection) viewMode = "tree";
-  applyViewMode();
-  renderScene();
-  applyZoom();
-  treeWrap.scrollTo({ left: 0, top: 0 });
-  setTreeStatus("");
-  ensureTreeVisible();
-  restoreFromUrl();
-  if (pathMode) applyLineageHighlight();
-  if (treeCanvas && treeCanvas.children.length === 0) {
-    recoverEmptyView();
-    recoverEmptyViewAsync();
-  }
-  if (!hideTip) {
-    setTimeout(openTipOverlay, 600);
-  }
-  return treeCanvas && treeCanvas.children.length > 0;
-}
-
-function recoverEmptyView() {
-  hiddenGenerations.clear();
-  branchFilterValue = "all";
-  viewMode = "tree";
-  scale = 1;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(DATA_KEY);
-  } catch {
-    // ignore storage errors
-  }
-  applyViewMode();
-  renderScene();
-  applyZoom();
-  if (treeCanvas && treeCanvas.children.length === 0) {
-    const t = i18n[lang] || i18n.ms;
-    treeCanvas.textContent = t.loadFail;
-    setTreeStatus(t.loadFail, true);
-  }
-}
-
-async function recoverEmptyViewAsync() {
-  if (recoveryAttempted) return;
-  recoveryAttempted = true;
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(DATA_KEY);
-  } catch {
-    // ignore storage errors
-  }
-  try {
-    const { data } = await fetchDataJson(getDataUrlCandidates());
-    treeData = data;
-    storeData();
-    initFromData(data);
-    buildLayout();
-    applyViewMode();
-    renderScene();
-    applyZoom();
-    updateStats();
-    ensureTreeVisible();
-  } catch {
-    // ignore fetch errors
-  }
-}
-
-function initApp() {
-  const params = new URLSearchParams(window.location.search);
-  debugMode = params.get("debug") === "1";
-  if (debugMode) updateDebugOverlay("Booting...");
-  console.info("[KAMI-tree] version", APP_VERSION);
-  console.info("[INIT] starting");
-
-  applyCardScale();
-  applyThemePreset();
-  applyDetailsVisibility();
-  applyMinimapState();
-  applyDragToPanState();
-  applyLanguage();
-  setupMinimap();
-  updateViewSwitch();
-  updateTimelineMoreState(false);
-
-  const t = i18n[lang] || i18n.ms;
-  setTreeStatus(t.loading);
-
-  let stored = loadStoredData();
-  if (FORCE_RESET) {
-    localStorage.removeItem(DATA_KEY);
-    localStorage.removeItem(STORAGE_KEY);
-    stored = null;
-    hiddenGenerations.clear();
-    branchFilterValue = "all";
-  }
-  if (stored) {
-    const errors = validateTreeData(stored);
-    if (errors.length === 0 && stored.people.length > 0) {
-      const ok = initFromData(stored);
-      if (forceFreshData) {
-        localStorage.removeItem(DATA_KEY);
-        stored = null;
-        forceFreshData = false;
-      }
-      if (!ok) {
-        localStorage.removeItem(DATA_KEY);
-        stored = null;
-      }
-    } else {
-      stored = null;
-    }
-  }
-
-  const dataUrls = getDataUrlCandidates();
-  console.info("[FETCH] candidates", dataUrls);
-  updateDebugOverlay(`Fetching ${dataUrls[0] || "data.json"}...`);
-
-  loadData(dataUrls, stored, t).catch((err) => {
-    showFatalError(err);
-    updateDebugOverlay(`ERROR: ${formatError(err)}`);
-  });
-}
-
-async function loadData(dataUrls, stored, t) {
-  const { data, url } = await fetchDataJson(dataUrls);
-  if (!Array.isArray(data?.people) || !Array.isArray(data?.unions)) {
-    throw new Error(`Invalid data.json schema (${url})`);
-  }
-  if (treeCanvas) treeCanvas.textContent = "";
-  if (!stored) {
-    treeData = data;
-    storeData();
-    stored = data;
-    initFromData(data);
-  }
-  if (data?.dataVersion && stored?.dataVersion === data.dataVersion) {
-    return;
-  }
-  treeData = data;
-  storeData();
-  initFromData(data);
-
-  buildLayout();
-  applyViewMode();
-  renderScene();
-  applyZoom();
-  updateStats();
-  ensureTreeVisible();
-  if (treeCanvas && treeCanvas.children.length === 0) {
-    treeCanvas.textContent = "Tiada data untuk dipaparkan. Sila semak data.json";
-    setTreeStatus("Tiada data untuk dipaparkan. Sila semak data.json", true);
-    return;
-  }
-
-  console.log("[OK] data loaded:", data.people.length, data.unions.length);
-  console.log("[RENDER] nodes:", nodesList.length, "baseSize:", baseSize);
-  updateDebugOverlay(`OK | people: ${data.people?.length || 0} | unions: ${data.unions?.length || 0}`);
-}
-
-if (fatalReload) {
-  fatalReload.addEventListener("click", () => window.location.reload());
-}
-
-if (fatalClose) {
-  fatalClose.addEventListener("click", closeFatalError);
-}
-
-if (fatalError) {
-  fatalError.addEventListener("click", (event) => {
-    if (event.target === fatalError) closeFatalError();
-  });
-}
-
-window.addEventListener("error", (event) => {
-  showFatalError(event.error || event.message);
-});
-
-window.addEventListener("unhandledrejection", (event) => {
-  showFatalError(event.reason || "Unhandled promise rejection");
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  try {
-    initApp();
-  } catch (err) {
-    showFatalError(err);
-  }
-});
-
-function loadPrefs() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch (err) {
-    return {};
-  }
-}
-
-function savePrefs() {
-  const payload = {
-    theme: app.dataset.theme,
-    scale,
-    viewMode,
-    treeView,
-    branchFilter: branchFilterValue,
-    lang,
-    compactMode,
-    pathMode,
-    controlsCollapsed,
-    themePreset,
-    showLines,
-    cardScale,
-    minimapEnabled,
-    dragToPan,
-    showBirthdate,
-    showAge,
-    showTags,
-    defaultView,
-    focusIncludeGrandparents,
-    hideTip
-  };
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-}
-
-function loadStoredData() {
-  try {
-    const raw = localStorage.getItem(DATA_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (err) {
-    console.warn("[INIT] failed to read cached data", err);
-    return null;
-  }
-}
-
-function storeData() {
-  try {
-    if (treeData) localStorage.setItem(DATA_KEY, JSON.stringify(treeData));
-  } catch {
-    // ignore storage errors
-  }
-}
-
-function getDataUrlCandidates() {
-  const candidates = [];
-  const push = (url) => {
-    if (!url) return;
-    if (!candidates.includes(url)) candidates.push(url);
-  };
-  push("./data.json");
-  try {
-    push(new URL("data.json", window.location.href).toString());
-  } catch {
-    // ignore
-  }
-  try {
-    const path = window.location.pathname || "/";
-    const parts = path.split("/").filter(Boolean);
-    if (parts.length > 0) {
-      push(`${window.location.origin}/${parts[0]}/data.json`);
-    }
-    const basePath = `${window.location.origin}${path.endsWith("/") ? path : `${path}/`}`;
-    push(new URL("data.json", basePath).toString());
-  } catch {
-    // ignore
-  }
-  return candidates;
-}
-
-async function fetchDataJson(candidates) {
-  let lastErr = null;
-  for (const url of candidates) {
-    try {
-      console.info("[FETCH] trying", url);
-      const cacheBuster = url.includes("?") ? `&ts=${Date.now()}` : `?ts=${Date.now()}`;
-      const res = await fetch(`${url}${cacheBuster}`, { cache: "no-store" });
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText} (${url})`);
-      }
-      const data = await res.json();
-      console.info("[FETCH] ok", url);
-      return { data, url };
-    } catch (err) {
-      console.warn("[FETCH] failed", url, err);
-      lastErr = err;
-    }
-  }
-  throw lastErr || new Error("Failed to load data.json");
-}
-
-function buildLayout() {
-  const unionsById = new Map(treeData.unions.map((u) => [u.id, u]));
-  const unionsByPartner = new Map();
-  const parentUnionByChild = new Map();
-
-  treeData.unions.forEach((union) => {
-    [union.partner1, union.partner2].forEach((pid) => {
-      if (!pid) return;
-      if (!unionsByPartner.has(pid)) unionsByPartner.set(pid, []);
-      unionsByPartner.get(pid).push(union.id);
-    });
-    union.children.forEach((childId) => parentUnionByChild.set(childId, union.id));
-  });
-
-  const unionNodes = new Map();
-
-  function buildUnionNode(unionId, trail = new Set()) {
-    if (trail.has(unionId)) return null;
-    if (unionNodes.has(unionId)) return unionNodes.get(unionId);
-    const union = unionsById.get(unionId);
-    if (!union) return null;
-    const node = {
-      id: unionId,
-      type: "union",
-      partner1: union.partner1,
-      partner2: union.partner2,
-      children: []
-    };
-    unionNodes.set(unionId, node);
-    const nextTrail = new Set(trail);
-    nextTrail.add(unionId);
-    union.children.forEach((childId) => {
-      const childUnions = (unionsByPartner.get(childId) || []).filter((id) => id !== unionId);
-      if (childUnions.length > 0) {
-        childUnions.forEach((childUnionId) => {
-          const childUnionNode = buildUnionNode(childUnionId, nextTrail);
-          if (childUnionNode) node.children.push(childUnionNode);
-        });
-      } else {
-        node.children.push({ id: childId, type: "person", personId: childId, children: [] });
-      }
-    });
-    return node;
-  }
-
-  const root = { id: "root", type: "root", children: [] };
-
-  const rootUnions = treeData.unions.filter((u) => {
-    const p1Parent = u.partner1 && parentUnionByChild.has(u.partner1);
-    const p2Parent = u.partner2 && parentUnionByChild.has(u.partner2);
-    return !p1Parent && !p2Parent;
-  });
-
-  rootUnions.forEach((u) => {
-    const node = buildUnionNode(u.id);
-    if (node) root.children.push(node);
-  });
-
-  treeData.people.forEach((person) => {
-    const isChild = parentUnionByChild.has(person.id);
-    const isPartner = unionsByPartner.has(person.id);
-    if (!isChild && !isPartner) {
-      root.children.push({ id: person.id, type: "person", personId: person.id, children: [] });
-    }
-  });
-
-  function measure(node) {
-    if (node.type === "root") {
-      const childWidths = node.children.map((child) => measure(child));
-      const total = childWidths.reduce((sum, w) => sum + w, 0) + layoutConfig.hGap * Math.max(0, childWidths.length - 1);
-      node.width = total;
-      node.ownWidth = 0;
-      return node.width;
-    }
-
-    const ownWidth = node.type === "union" && node.partner2
-      ? layoutConfig.cardWidth * 2 + layoutConfig.cardGap
-      : layoutConfig.cardWidth;
-
-    const childWidths = node.children.map((child) => measure(child));
-    const childrenTotal = childWidths.reduce((sum, w) => sum + w, 0) + layoutConfig.hGap * Math.max(0, childWidths.length - 1);
-    node.width = Math.max(ownWidth, childrenTotal || 0);
-    node.ownWidth = ownWidth;
-    return node.width;
-  }
-
-  function layout(node, x, y, depth = 0, branchId = 0) {
-    node.depth = depth;
-    node.branchId = branchId;
-    if (node.type !== "root") {
-      node.x = x + (node.width - node.ownWidth) / 2;
-      node.y = y;
-    }
-    const childWidths = node.children.map((child) => child.width);
-    const total = childWidths.reduce((sum, w) => sum + w, 0) + layoutConfig.hGap * Math.max(0, childWidths.length - 1);
-    let startX = x + (node.width - total) / 2;
-    node.children.forEach((child) => {
-      layout(child, startX, y + layoutConfig.vGap, depth + 1, branchId);
-      startX += child.width + layoutConfig.hGap;
-    });
-  }
-
-  measure(root);
-  root.children.forEach((child, index) => {
-    const branchId = index % branchPalette.length;
-    layout(child, layoutConfig.leftPadding + layoutConfig.labelColumnWidth, layoutConfig.topPadding, 1, branchId);
-  });
-
-  nodesList = [];
-  maxDepth = 0;
-
-  function collect(node) {
-    if (node.type !== "root") {
-      nodesList.push(node);
-      maxDepth = Math.max(maxDepth, node.depth);
-    }
-    node.children.forEach(collect);
-  }
-
-  collect(root);
-  layoutRoot = root;
-
-  let maxX = 0;
-  let maxY = 0;
-  nodesList.forEach((node) => {
-    const width = node.ownWidth || layoutConfig.cardWidth;
-    maxX = Math.max(maxX, node.x + width);
-    maxY = Math.max(maxY, node.y + layoutConfig.vGap);
-  });
-
-  baseSize = {
-    width: maxX + layoutConfig.leftPadding,
-    height: maxY + layoutConfig.vGap
-  };
-
-  virtualizationEnabled = nodesList.length > VIRTUALIZE_THRESHOLD;
-}
-
-function buildGenerationControls() {
-  if (!generationControls || !GENERATION_FILTER_ENABLED) return;
-  const t = i18n[lang] || i18n.ms;
-  generationControls.innerHTML = "";
-  for (let depth = 1; depth <= maxDepth; depth += 1) {
-    const chip = document.createElement("button");
-    chip.type = "button";
-    chip.className = "gen-chip";
-    chip.dataset.depth = depth;
-    chip.textContent = `G${depth}`;
-    if (hiddenGenerations.has(depth)) chip.classList.add("inactive");
-    chip.addEventListener("click", () => {
-      if (hiddenGenerations.has(depth)) {
-        hiddenGenerations.delete(depth);
-        chip.classList.remove("inactive");
-      } else {
-        hiddenGenerations.add(depth);
-        chip.classList.add("inactive");
-      }
-      savePrefs();
-      scheduleRender();
-      updateUrlState();
-    });
-    generationControls.appendChild(chip);
-  }
-
-  const reset = document.createElement("button");
-  reset.type = "button";
-  reset.className = "gen-chip";
-  reset.textContent = t.genAll;
-  reset.dataset.reset = "true";
-  reset.addEventListener("click", () => {
-    hiddenGenerations.clear();
-    generationControls.querySelectorAll(".gen-chip").forEach((chip) => {
-      if (!chip.dataset.reset) chip.classList.remove("inactive");
-    });
-    savePrefs();
-    scheduleRender();
-    updateUrlState();
-  });
-  generationControls.appendChild(reset);
-
-  const openAllBtn = document.createElement("button");
-  openAllBtn.type = "button";
-  openAllBtn.className = "gen-chip";
-  openAllBtn.dataset.openAll = "true";
-  openAllBtn.textContent = t.openAll;
-  openAllBtn.addEventListener("click", () => {
-    hiddenGenerations.clear();
-    generationControls.querySelectorAll(".gen-chip").forEach((chip) => {
-      if (!chip.dataset.reset && !chip.dataset.openAll && !chip.dataset.collapse) chip.classList.remove("inactive");
-    });
-    savePrefs();
-    scheduleRender();
-    updateUrlState();
-  });
-  generationControls.appendChild(openAllBtn);
-
-  const collapseBtn = document.createElement("button");
-  collapseBtn.type = "button";
-  collapseBtn.className = "gen-chip";
-  collapseBtn.dataset.collapse = "true";
-  collapseBtn.textContent = t.collapseG2;
-  collapseBtn.addEventListener("click", () => {
-    hiddenGenerations.clear();
-    for (let depth = 3; depth <= maxDepth; depth += 1) {
-      hiddenGenerations.add(depth);
-    }
-    generationControls.querySelectorAll(".gen-chip").forEach((chip) => {
-      if (!chip.dataset.reset && !chip.dataset.openAll && !chip.dataset.collapse) {
-        const depth = Number(chip.dataset.depth);
-        chip.classList.toggle("inactive", depth >= 3);
-      }
-    });
-    savePrefs();
-    scheduleRender();
-    updateUrlState();
-  });
-  generationControls.appendChild(collapseBtn);
-}
-
-function buildBranchFilter() {
-  if (!branchFilter || !BRANCH_FILTER_ENABLED) return;
-  const t = i18n[lang] || i18n.ms;
-  branchFilter.innerHTML = "";
-  const optionAll = document.createElement("option");
-  optionAll.value = "all";
-  optionAll.textContent = t.branchAll;
-  branchFilter.appendChild(optionAll);
-
-  layoutRoot.children.forEach((child, index) => {
-    const option = document.createElement("option");
-    option.value = String(index);
-    option.textContent = formatText(t.branchName, { n: index + 1 });
-    branchFilter.appendChild(option);
-  });
-
-  branchFilter.value = branchFilterValue;
-  branchFilter.addEventListener("change", () => {
-    branchFilterValue = branchFilter.value;
-    savePrefs();
-    scheduleRender();
-    updateUrlState();
-  });
-}
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error("Failed to read file."));
-    reader.onload = () => resolve(reader.result);
-    reader.readAsDataURL(file);
-  });
-}
-
-function rebuildFromData() {
-  peopleById = new Map(treeData.people.map((p) => [p.id, p]));
-  softPeachPeople = computeBranchPeople(SOFT_PEACH_ROOT_ID);
-  babyBluePeople = computeBranchPeople(BABY_BLUE_ROOT_ID);
-  mintGreenPeople = computeBranchPeople(MINT_GREEN_ROOT_ID);
-  lavenderPeople = computeBranchPeople(LAVENDER_ROOT_ID);
-  applyCardScale();
-  buildLayout();
-  updateStats();
-  populateTimelineFilters();
-  buildGenerationControls();
-  buildBranchFilter();
-  renderScene();
-  applyLanguage();
-  if (pathMode) applyLineageHighlight();
-}
-
-function computeBranchPeople(rootId) {
-  if (!treeData?.unions || !treeData?.people) return new Set();
-  if (!treeData.people.some((p) => p.id === rootId)) return new Set();
-  const unionsByPartner = new Map();
-  treeData.unions.forEach((union) => {
-    [union.partner1, union.partner2].forEach((pid) => {
-      if (!pid) return;
-      if (!unionsByPartner.has(pid)) unionsByPartner.set(pid, []);
-      unionsByPartner.get(pid).push(union);
-    });
-  });
-
-  const result = new Set();
-  const queue = [rootId];
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current || result.has(current)) continue;
-    result.add(current);
-    const unions = unionsByPartner.get(current) || [];
-    unions.forEach((union) => {
-      if (union.partner1) queue.push(union.partner1);
-      if (union.partner2) queue.push(union.partner2);
-      (union.children || []).forEach((childId) => queue.push(childId));
-    });
-  }
-  return result;
-}
-
-function generateId() {
-  let idx = treeData.people.length + 1;
-  let id = `p${idx}`;
-  while (peopleById.has(id)) {
-    idx += 1;
-    id = `p${idx}`;
-  }
-  return id;
-}
-
-function generateUnionId() {
-  const used = new Set(treeData.unions.map((u) => u.id));
-  let idx = treeData.unions.length + 1;
-  let id = `u${idx}`;
-  while (used.has(id)) {
-    idx += 1;
-    id = `u${idx}`;
-  }
-  return id;
-}
-
-function applyViewMode() {
-  if (!timelineSection) {
-    viewMode = "tree";
-    if (treeWrap) treeWrap.hidden = false;
-    document.body.dataset.view = "tree";
-    return;
-  }
-  if (viewMode === "timeline") {
-    document.body.dataset.view = "timeline";
-    timelineSection.hidden = false;
-    treeWrap.hidden = true;
-    renderTimeline();
-  } else {
-    document.body.dataset.view = "tree";
-    timelineSection.hidden = true;
-    treeWrap.hidden = false;
-  }
-  applyLanguage();
-}
-
-// Focus/full view helpers and visibility logic.
-function updateTreeViewButtons() {
-  const isFocus = treeView === "focus";
-  if (focusViewBtn) focusViewBtn.classList.toggle("is-active", isFocus);
-  if (showAllBtn) showAllBtn.classList.toggle("is-active", !isFocus);
-  if (mobileFocusViewBtn) mobileFocusViewBtn.classList.toggle("is-active", isFocus);
-  if (mobileShowAllBtn) mobileShowAllBtn.classList.toggle("is-active", !isFocus);
-}
-
-function updateViewInfoBar() {
-  if (!viewInfo || !treeData) return;
-  const shouldShow = viewMode === "tree" && treeView === "focus";
-  viewInfo.hidden = !shouldShow;
-  if (!shouldShow) return;
-  const total = treeData.people?.length || 0;
-  const shown = visiblePeopleIds.size;
-  const t = i18n[lang] || i18n.ms;
-  if (viewInfoText) viewInfoText.textContent = formatText(t.viewInfoFocus, { shown, total });
-  if (viewInfoShowAll) viewInfoShowAll.textContent = formatText(t.viewInfoShowAll, { total });
-  if (viewInfoFit) viewInfoFit.textContent = t.fit;
-  if (resetFocusBtn) resetFocusBtn.textContent = t.resetFocus;
-  if (resetFocusBtn) resetFocusBtn.disabled = treeView !== "focus";
-}
-
-function openTipOverlay() {
-  if (!tipOverlay || hideTip) return;
-  tipOverlay.classList.add("is-open");
-  tipOverlay.setAttribute("aria-hidden", "false");
-}
-
-function closeTipOverlay() {
-  if (!tipOverlay) return;
-  tipOverlay.classList.remove("is-open");
-  tipOverlay.setAttribute("aria-hidden", "true");
-  if (tipHideCheckbox && tipHideCheckbox.checked) {
-    hideTip = true;
-    savePrefs();
-  }
-}
-
-function openShowAllConfirm() {
-  if (!showAllModal) return;
-  showAllModal.classList.add("is-open");
-  showAllModal.setAttribute("aria-hidden", "false");
-}
-
-function closeShowAllConfirm() {
-  if (!showAllModal) return;
-  showAllModal.classList.remove("is-open");
-  showAllModal.setAttribute("aria-hidden", "true");
-}
-
-function openSearchOverlay() {
-  if (!searchOverlay) return;
-  searchOverlay.classList.add("is-open");
-  searchOverlay.setAttribute("aria-hidden", "false");
-  if (searchOverlayInput) {
-    searchOverlayInput.value = "";
-    searchOverlayInput.focus();
-  }
-}
-
-function closeSearchOverlay() {
-  if (!searchOverlay) return;
-  searchOverlay.classList.remove("is-open");
-  searchOverlay.setAttribute("aria-hidden", "true");
-}
-
-function getFocusStartId() {
-  if (treeData?.selfId && peopleById.has(treeData.selfId)) return treeData.selfId;
-  const rootUnion = findRootUnion();
-  return rootUnion?.partner1 || rootUnion?.partner2 || treeData?.people?.[0]?.id || "";
-}
-
-function setTreeView(next, { fit = false, announce = false } = {}) {
-  if (!treeData) return;
-  if (viewMode !== "tree") {
-    viewMode = "tree";
-    applyViewMode();
-  }
-  treeView = next === "full" ? "full" : "focus";
-  if (treeView === "full") {
-    // Full tree: clear filters and show everything.
-    hiddenGenerations.clear();
-    branchFilterValue = "all";
-    visiblePeopleIds = new Set(treeData.people.map((p) => p.id));
-    buildLayout();
-    renderScene();
-    if (fit) fitToScreen();
-    if (selectedPersonId) applySelectionHighlight(selectedPersonId);
-    if (announce) setTreeStatus(i18n[lang].fullTreeEnabled);
-  } else {
-    // Focus tree: compute a small visible set around self/root.
-    visiblePeopleIds = computeVisibleSetForFocus();
-    buildLayout();
-    renderScene();
-    const focusId = getFocusStartId();
-    if (focusId) {
-      requestAnimationFrame(() => centerOnPerson(focusId));
-    }
-  }
-  updateViewInfoBar();
-  updateTreeViewButtons();
-  savePrefs();
-}
-
-function openMinimapNow() {
-  if (!minimapWrap) return;
-  if (!minimapEnabled) {
-    minimapEnabled = true;
-    applyMinimapState();
-    if (settingsMinimap) settingsMinimap.checked = true;
-  }
-  minimapWrap.classList.remove("is-collapsed");
-  minimapWrap.classList.add("is-open");
-}
-
-function requestShowAll() {
-  if (!treeData) return;
-  const total = treeData.people?.length || 0;
-  if (total > 300) {
-    openShowAllConfirm();
-    return;
-  }
-  setTreeView("full", { fit: true, announce: true });
-  openMinimapNow();
-}
-
-function ensureVisibleInFocus(personId) {
-  if (treeView !== "focus") return;
-  if (!visiblePeopleIds.size) visiblePeopleIds = computeVisibleSetForFocus();
-  if (!visiblePeopleIds.has(personId)) {
-    expandAroundPerson(personId, { parents: true, spouses: true, children: true, siblings: true, grandparents: focusIncludeGrandparents });
-  }
-}
-
-function computeVisibleSetForFocus() {
-  const set = new Set();
-  const hasSelf = treeData?.selfId && peopleById.has(treeData.selfId);
-  if (hasSelf) {
-    expandAroundPerson(treeData.selfId, { parents: true, spouses: true, children: true, siblings: true, grandparents: focusIncludeGrandparents }, set);
-  } else {
-    const rootUnion = findRootUnion();
-    if (rootUnion) {
-      [rootUnion.partner1, rootUnion.partner2].forEach((id) => {
-        if (id) set.add(id);
-      });
-      (rootUnion.children || []).forEach((childId) => {
-        if (childId) set.add(childId);
-        getSpousesOf(childId).forEach((spouseId) => set.add(spouseId));
-      });
-    }
-  }
-  if (set.size === 0 && treeData?.people?.length) {
-    treeData.people.slice(0, 40).forEach((p) => set.add(p.id));
-  }
-  return set;
-}
-
-function findRootUnion() {
-  if (!treeData?.unions?.length) return null;
-  const childSet = new Set();
-  treeData.unions.forEach((u) => (u.children || []).forEach((cid) => childSet.add(cid)));
-  return treeData.unions.find((u) => (!u.partner1 || !childSet.has(u.partner1)) && (!u.partner2 || !childSet.has(u.partner2))) || treeData.unions[0];
-}
-
-function expandAroundPerson(personId, options = {}, targetSet = visiblePeopleIds) {
-  if (!personId || !targetSet) return;
-  const addIds = (ids) => {
-    ids.forEach((id) => {
-      if (id && peopleById.has(id)) targetSet.add(id);
-    });
-  };
-  addIds([personId]);
-  if (options.parents) addIds(getParentsOf(personId));
-  if (options.spouses) addIds(getSpousesOf(personId));
-  if (options.children) addIds(getChildrenOf(personId));
-  if (options.siblings) addIds(getSiblingsOf(personId));
-  if (options.grandparents) addIds(getGrandparentsOf(personId));
-}
-
-function getParentsOf(personId) {
-  const union = treeData.unions.find((u) => (u.children || []).includes(personId));
-  return union ? [union.partner1, union.partner2].filter(Boolean) : [];
-}
-
-function getSpousesOf(personId) {
-  const spouses = new Set();
-  treeData.unions.forEach((u) => {
-    if (u.partner1 === personId && u.partner2) spouses.add(u.partner2);
-    if (u.partner2 === personId && u.partner1) spouses.add(u.partner1);
-  });
-  return [...spouses];
-}
-
-function getChildrenOf(personId) {
-  const children = new Set();
-  treeData.unions.forEach((u) => {
-    if (u.partner1 === personId || u.partner2 === personId) {
-      (u.children || []).forEach((cid) => children.add(cid));
-    }
-  });
-  return [...children];
-}
-
-function getSiblingsOf(personId) {
-  const union = treeData.unions.find((u) => (u.children || []).includes(personId));
-  if (!union) return [];
-  return (union.children || []).filter((cid) => cid !== personId);
-}
-
-function getGrandparentsOf(personId) {
-  const grandparents = new Set();
-  getParentsOf(personId).forEach((pid) => {
-    getParentsOf(pid).forEach((gid) => grandparents.add(gid));
-  });
-  return [...grandparents];
-}
-
-function centerOnPerson(personId) {
-  if (!treeWrap) return false;
-  const group = elementByPersonId.get(personId);
-  if (!group) return false;
-  const rect = group.getBoundingClientRect();
-  const wrapRect = treeWrap.getBoundingClientRect();
-  const scrollLeft = treeWrap.scrollLeft + rect.left - wrapRect.left - wrapRect.width / 2 + rect.width / 2;
-  const scrollTop = treeWrap.scrollTop + rect.top - wrapRect.top - wrapRect.height / 2 + rect.height / 2;
-  treeWrap.scrollTo({ left: scrollLeft, top: scrollTop, behavior: "smooth" });
-  highlightPerson(personId);
-  return true;
-}
-
-function highlightPerson(personId) {
-  document.querySelectorAll(".person-card.is-focused").forEach((el) => el.classList.remove("is-focused"));
-  const group = elementByPersonId.get(personId);
-  if (!group) return false;
-  const card = group.querySelector(`.person-card[data-person-id="${personId}"]`);
-  if (!card) return false;
-  card.classList.add("is-focused");
-  setTimeout(() => card.classList.remove("is-focused"), 1600);
-  return true;
-}
-
-function focusCard(personId, { keyboard = false } = {}) {
-  const group = elementByPersonId.get(personId);
-  if (!group) return false;
-  const card = group.querySelector(`.person-card[data-person-id="${personId}"]`);
-  if (!card) return false;
-  if (keyboard) {
-    document.querySelectorAll(".person-card.is-keyboard").forEach((el) => el.classList.remove("is-keyboard"));
-    card.classList.add("is-keyboard");
-  }
-  card.focus({ preventScroll: true });
-  return true;
-}
-
-function getLayoutNodeByPersonId(personId) {
-  return nodesList.find((node) => {
-    if (node.type === "person") return node.personId === personId;
-    if (node.type === "union") return node.partner1 === personId || node.partner2 === personId;
-    return false;
-  });
-}
-
-function sortIdsByX(ids) {
-  return ids
-    .map((id) => ({ id, node: getLayoutNodeByPersonId(id) }))
-    .filter((entry) => entry.node)
-    .sort((a, b) => a.node.x - b.node.x)
-    .map((entry) => entry.id);
-}
-
-function moveFocusTo(personId, { open = false, center = true, keyboard = false } = {}) {
-  const person = peopleById.get(personId);
-  if (!person) return;
-  if (viewMode !== "tree") {
-    viewMode = "tree";
-    applyViewMode();
-  }
-  if (treeView === "focus") {
-    ensureVisibleInFocus(personId);
-  }
-  selectedPersonId = personId;
-  updateStoryPanel(person);
-  applySelectionHighlight(personId);
-  if (open) openModal(person);
-  if (!elementByPersonId.get(personId)) {
-    scheduleRender();
-  }
-  requestAnimationFrame(() => {
-    focusCard(personId, { keyboard });
-    if (center) centerOnPerson(personId);
-  });
-  updateUrlState();
-}
-
-function buildBreadcrumbLine(personId) {
-  if (!personId) return "";
-  const chain = [];
-  let cursor = personId;
-  let guard = 0;
-  while (guard < 6) {
-    guard += 1;
-    const parentUnion = treeData.unions.find((u) => (u.children || []).includes(cursor));
-    if (!parentUnion) break;
-    const parentId = parentUnion.partner1 || parentUnion.partner2;
-    if (!parentId) break;
-    chain.push(parentId);
-    cursor = parentId;
-  }
-  const names = chain.reverse().map((id) => formatDisplayName(peopleById.get(id)?.name || "")).filter(Boolean);
-  const current = formatDisplayName(peopleById.get(personId)?.name || "");
-  if (!current && names.length === 0) return "";
-  return names.length ? `${names.join(" → ")} → ${current}` : current;
-}
-
-function scheduleRender() {
-  if (renderQueued) return;
-  renderQueued = true;
-  requestAnimationFrame(() => {
-    renderQueued = false;
-    renderScene();
-  });
-}
-
-function renderScene() {
-  if (viewMode === "timeline") {
-    if (!timelineSection) {
-      viewMode = "tree";
-    } else {
-      renderTimeline();
-      return;
-    }
-  }
-
-  treeCanvas.innerHTML = "";
-  treeLines.innerHTML = "";
-  elementByPersonId.clear();
-  elementByNodeId.clear();
-  nodeByPersonId.clear();
-
-  treeCanvas.style.width = `${baseSize.width}px`;
-  treeCanvas.style.height = `${baseSize.height}px`;
-  treeLines.setAttribute("width", baseSize.width);
-  treeLines.setAttribute("height", baseSize.height);
-
-  renderGenerationLabels();
-
-  let visibleNodes = getVisibleNodes();
-  if (visibleNodes.length === 0) {
-    let changed = false;
-    if (hiddenGenerations.size > 0) {
-      hiddenGenerations.clear();
-      changed = true;
-    }
-    if (branchFilterValue !== "all") {
-      branchFilterValue = "all";
-      changed = true;
-    }
-    if (changed) {
-      savePrefs();
-      visibleNodes = getVisibleNodes();
-    }
-    if (visibleNodes.length === 0 && treeData?.people?.length) {
-      hiddenGenerations.clear();
-      branchFilterValue = "all";
-      viewMode = "tree";
-      localStorage.removeItem(STORAGE_KEY);
-      visibleNodes = getVisibleNodes();
-    }
-  }
-  visibleNodes.forEach((node) => renderNode(node));
-
-  drawLines(layoutRoot, visibleNodes);
-  applyZoom();
-  updateMinimap();
-  if (pathMode) applyLineageHighlight();
-  if (selectedPersonId) {
-    applySelectionHighlight(selectedPersonId);
-    focusCard(selectedPersonId);
-  }
-  if (treeCanvas && treeCanvas.children.length > 0 && !hasDataErrors) {
-    setTreeStatus("");
-  }
-  updateViewInfoBar();
-  updateTreeViewButtons();
-}
-
-function renderGenerationLabels() {
-  const labelOffset = 20;
-  const depthMap = new Map();
-  nodesList.forEach((node) => {
-    if (!nodeVisible(node)) return;
-    if (!depthMap.has(node.depth)) depthMap.set(node.depth, node.y);
-  });
-
-  depthMap.forEach((y, depth) => {
-    const divider = document.createElement("div");
-    divider.className = "generation-divider";
-    divider.style.top = `${y - 24}px`;
-    treeCanvas.appendChild(divider);
-
-    const label = document.createElement("div");
-    label.className = "generation-label";
-    label.textContent = `${i18n[lang].legendGeneration} ${depth}`;
-    label.style.top = `${y + labelOffset}px`;
-    label.style.left = "16px";
-    treeCanvas.appendChild(label);
-  });
-}
-
-function nodeVisible(node) {
-  if (hiddenGenerations.has(node.depth)) return false;
-  if (branchFilterValue !== "all" && String(node.branchId) !== branchFilterValue) return false;
-  if (treeView === "focus" && viewMode === "tree") {
-    if (node.type === "person") return visiblePeopleIds.has(node.personId);
-    if (node.type === "union") {
-      const p1Visible = node.partner1 && visiblePeopleIds.has(node.partner1);
-      const p2Visible = node.partner2 && visiblePeopleIds.has(node.partner2);
-      const childVisible = (node.children || []).some((child) => {
-        if (child.type === "person") return visiblePeopleIds.has(child.personId);
-        if (child.type === "union") {
-          return (child.partner1 && visiblePeopleIds.has(child.partner1)) || (child.partner2 && visiblePeopleIds.has(child.partner2));
-        }
-        return false;
-      });
-      return p1Visible || p2Visible || childVisible;
-    }
-  }
-  return true;
-}
-
-function getVisibleNodes() {
-  const nodes = nodesList.filter((node) => nodeVisible(node));
-  if (!virtualizationEnabled || treeView === "focus") return nodes;
-
-  const padding = 800;
-  const viewX = treeWrap.scrollLeft / scale - padding;
-  const viewY = treeWrap.scrollTop / scale - padding;
-  const viewW = treeWrap.clientWidth / scale + padding * 2;
-  const viewH = treeWrap.clientHeight / scale + padding * 2;
-
-  return nodes.filter((node) => {
-    const width = node.ownWidth || layoutConfig.cardWidth;
-    const height = 120;
-    return node.x + width >= viewX && node.x <= viewX + viewW && node.y + height >= viewY && node.y <= viewY + viewH;
-  });
-}
-
-function renderNode(node) {
-  if (node.type === "person") {
-    const person = peopleById.get(node.personId);
-    const group = document.createElement("div");
-    group.className = "node-group";
-    group.style.left = `${node.x}px`;
-    group.style.top = `${node.y}px`;
-    group.dataset.nodeId = node.id;
-    group.dataset.depth = node.depth;
-    group.style.setProperty("--branch-color", branchPalette[node.branchId]);
-    const card = createPersonCard(person, node.depth);
-    const isMenantu = (person?.relation || "").toLowerCase().includes("menantu");
-    if (!isMenantu && node.depth >= 2 && node.depth <= 4 && softPeachPeople.has(node.personId)) {
-      card.classList.add("soft-peach");
-      card.style.setProperty("--card-fill", SOFT_PEACH_COLOR);
-    }
-    if (!isMenantu && node.depth >= 2 && node.depth <= 4 && babyBluePeople.has(node.personId)) {
-      card.classList.add("baby-blue");
-      card.style.setProperty("--card-fill", BABY_BLUE_COLOR);
-    }
-    if (!isMenantu && node.depth >= 2 && node.depth <= 4 && mintGreenPeople.has(node.personId)) {
-      card.classList.add("mint-green");
-      card.style.setProperty("--card-fill", MINT_GREEN_COLOR);
-    }
-    if (!isMenantu && node.depth >= 2 && node.depth <= 4 && lavenderPeople.has(node.personId)) {
-      card.classList.add("lavender");
-      card.style.setProperty("--card-fill", LAVENDER_COLOR);
-    }
-    group.appendChild(card);
-    treeCanvas.appendChild(group);
-    elementByPersonId.set(person.id, group);
-    nodeByPersonId.set(person.id, node);
-    elementByNodeId.set(node.id, group);
-  }
-
-  if (node.type === "union") {
-    const group = document.createElement("div");
-    group.className = "node-group";
-    group.style.left = `${node.x}px`;
-    group.style.top = `${node.y}px`;
-    group.dataset.nodeId = node.id;
-    group.dataset.depth = node.depth;
-    group.style.setProperty("--branch-color", branchPalette[node.branchId]);
-    const partner1 = peopleById.get(node.partner1);
-    const partner2 = node.partner2 ? peopleById.get(node.partner2) : null;
-    const showPartner1 = treeView !== "focus" || visiblePeopleIds.has(node.partner1);
-    const showPartner2 = treeView !== "focus" || visiblePeopleIds.has(node.partner2);
-    if (partner1 && showPartner1) {
-      const card1 = createPersonCard(partner1, node.depth);
-      card1.dataset.partner = "left";
-      const isMenantu1 = (partner1?.relation || "").toLowerCase().includes("menantu");
-      if (!isMenantu1 && node.depth >= 2 && node.depth <= 4 && softPeachPeople.has(node.partner1)) {
-        card1.classList.add("soft-peach");
-        card1.style.setProperty("--card-fill", SOFT_PEACH_COLOR);
-      }
-      if (!isMenantu1 && node.depth >= 2 && node.depth <= 4 && babyBluePeople.has(node.partner1)) {
-        card1.classList.add("baby-blue");
-        card1.style.setProperty("--card-fill", BABY_BLUE_COLOR);
-      }
-      if (!isMenantu1 && node.depth >= 2 && node.depth <= 4 && mintGreenPeople.has(node.partner1)) {
-        card1.classList.add("mint-green");
-        card1.style.setProperty("--card-fill", MINT_GREEN_COLOR);
-      }
-      if (!isMenantu1 && node.depth >= 2 && node.depth <= 4 && lavenderPeople.has(node.partner1)) {
-        card1.classList.add("lavender");
-        card1.style.setProperty("--card-fill", LAVENDER_COLOR);
-      }
-      group.appendChild(card1);
-      elementByPersonId.set(partner1.id, group);
-      nodeByPersonId.set(partner1.id, node);
-    }
-    if (partner2 && showPartner2) {
-      const card2 = createPersonCard(partner2, node.depth);
-      card2.dataset.partner = "right";
-      const isMenantu2 = (partner2?.relation || "").toLowerCase().includes("menantu");
-      if (!isMenantu2 && node.depth >= 2 && node.depth <= 4 && softPeachPeople.has(node.partner2)) {
-        card2.classList.add("soft-peach");
-        card2.style.setProperty("--card-fill", SOFT_PEACH_COLOR);
-      }
-      if (!isMenantu2 && node.depth >= 2 && node.depth <= 4 && babyBluePeople.has(node.partner2)) {
-        card2.classList.add("baby-blue");
-        card2.style.setProperty("--card-fill", BABY_BLUE_COLOR);
-      }
-      if (!isMenantu2 && node.depth >= 2 && node.depth <= 4 && mintGreenPeople.has(node.partner2)) {
-        card2.classList.add("mint-green");
-        card2.style.setProperty("--card-fill", MINT_GREEN_COLOR);
-      }
-      if (!isMenantu2 && node.depth >= 2 && node.depth <= 4 && lavenderPeople.has(node.partner2)) {
-        card2.classList.add("lavender");
-        card2.style.setProperty("--card-fill", LAVENDER_COLOR);
-      }
-      group.appendChild(card2);
-      elementByPersonId.set(partner2.id, group);
-      nodeByPersonId.set(partner2.id, node);
-    }
-    treeCanvas.appendChild(group);
-    elementByNodeId.set(node.id, group);
-  }
-}
-
-function createPersonCard(person, depth) {
-  const displayName = formatDisplayName(person.name);
-  const card = document.createElement("div");
-  card.className = "person-card";
-  card.dataset.personId = person.id;
-  card.dataset.depth = depth;
-  card.style.setProperty("--enter-delay", `${Math.min(420, depth * 55)}ms`);
-  card.tabIndex = 0;
-  if ((person.relation || "").toLowerCase().includes("menantu")) {
-    card.classList.add("is-menantu");
-  }
-
-  if (person.death) card.classList.add("deceased");
-
-  const header = document.createElement("div");
-  header.className = "person-header";
-
-  const avatar = document.createElement("div");
-  avatar.className = "avatar";
-  avatar.style.setProperty("--gen-ring", generationColor(depth));
-  if (person.photo) {
-    const img = document.createElement("img");
-    img.src = person.photo;
-    img.alt = displayName || person.name || "";
-    avatar.appendChild(img);
-  } else {
-    avatar.textContent = initials(displayName || person.name || "");
-  }
-
-  const nameWrap = document.createElement("div");
-  const name = document.createElement("div");
-  name.className = "person-name";
-  const split = splitNameByBin(displayName || person.name || "");
-  const firstName = formatDisplayName(person.firstName || split.first || person.name || "");
-  name.textContent = firstName || displayName || person.name || "";
-  const meta = document.createElement("div");
-  meta.className = "person-meta";
-  const birthLine = document.createElement("div");
-  birthLine.className = "person-birth";
-  if (person.birth) {
-    const birthDate = parseDateValue(person.birth);
-    const age = !person.death ? calcAge(birthDate) : null;
-    birthLine.textContent = `${i18n[lang].bornPrefix}${formatDateDisplay(person.birth)}`;
-    if (age !== null) {
-      const ageLine = document.createElement("div");
-      ageLine.className = "person-age";
-      ageLine.textContent = `${i18n[lang].ageLabel}: ${age}`;
-      meta.appendChild(ageLine);
-    }
-  } else {
-    birthLine.textContent = "";
-  }
-  const deathLine = document.createElement("div");
-  deathLine.textContent = person.death ? `${i18n[lang].diedPrefix}${formatDateDisplay(person.death)}` : "";
-  if (birthLine.textContent) meta.appendChild(birthLine);
-  if (deathLine.textContent) meta.appendChild(deathLine);
-  nameWrap.appendChild(name);
-  nameWrap.appendChild(meta);
-
-  header.appendChild(avatar);
-  header.appendChild(nameWrap);
-
-  const tags = document.createElement("div");
-  tags.className = "person-tags";
-  const relationText = localizeTagText(person.relation || "", lang);
-  const noteText = localizeTagText(person.note || "", lang);
-  const tagsQueue = [];
-  if (noteText) tagsQueue.push(noteText);
-  if (relationText && relationText !== noteText) tagsQueue.push(relationText);
-  tagsQueue.forEach((text) => {
-    const tag = document.createElement("span");
-    tag.className = "tag";
-    tag.textContent = text;
-    tags.appendChild(tag);
-  });
-  if (isPartnered(person.id)) {
-    const gender = detectGenderFromName(person.name);
-    const spouseLabel = gender === "male" ? i18n[lang].spouseHusband : gender === "female" ? i18n[lang].spouseWife : "";
-    const existingText = tagsQueue.join(" ").toLowerCase();
-    const spouseLower = spouseLabel.toLowerCase();
-    const hasSpouseAlready = existingText.includes(spouseLower) || existingText.includes("suami") || existingText.includes("isteri") || existingText.includes("husband") || existingText.includes("wife");
-    if (spouseLabel && !hasSpouseAlready) {
-      const spouseTag = document.createElement("span");
-      spouseTag.className = "tag";
-      spouseTag.textContent = spouseLabel;
-      tags.appendChild(spouseTag);
-    }
-  }
-  // No Bin/Binti tag on card
-
-  card.appendChild(header);
-  card.appendChild(tags);
-
-  card.addEventListener("click", (e) => {
-    e.stopPropagation();
-    openModal(person);
-    updateStoryPanel(person);
-    selectedPersonId = person.id;
-    applySelectionHighlight(person.id);
-    centerOnPerson(person.id);
-    updateUrlState();
-  });
-
-  return card;
-}
-
-function drawLines(root, visibleNodes) {
-  if (!showLines) {
-    treeLines.innerHTML = "";
-    return;
-  }
-  const visibleSet = new Set(visibleNodes.map((node) => node.id));
-  treeLines.innerHTML = "";
-  if (!treeCanvas) return;
-  const canvasBox = treeCanvas.getBoundingClientRect();
-
-  function drawNodeEdges(node) {
-    if (node.type === "union") {
-      if (!visibleSet.has(node.id)) return;
-      const parentEl = elementByNodeId.get(node.id);
-      if (!parentEl) return;
-      const parentCenterX = parentEl.offsetLeft + parentEl.offsetWidth / 2;
-      const parentBottomY = parentEl.offsetTop + parentEl.offsetHeight;
-      const childPoints = [];
-      node.children.forEach((child) => {
-        if (!nodeVisible(child)) return;
-        if (!visibleSet.has(child.id)) return;
-        const childEl = elementByNodeId.get(child.id);
-        if (!childEl) return;
-        childPoints.push({
-          x: childEl.offsetLeft + childEl.offsetWidth / 2,
-          y: childEl.offsetTop
-        });
-      });
-
-      if (childPoints.length > 0) {
-        const midY = (parentBottomY + Math.min(...childPoints.map((p) => p.y))) / 2;
-        const minX = Math.min(...childPoints.map((p) => p.x));
-        const maxX = Math.max(...childPoints.map((p) => p.x));
-        const stroke = `${branchPalette[node.branchId] || "#7a8a80"}CC`;
-        const barPad = 14;
-        const barInset = 6;
-
-        const trunk = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        trunk.setAttribute("d", `M ${parentCenterX} ${parentBottomY} V ${midY}`);
-        trunk.setAttribute("fill", "none");
-        trunk.setAttribute("stroke", stroke);
-        trunk.setAttribute("stroke-width", "2.5");
-        trunk.setAttribute("stroke-linecap", "round");
-        treeLines.appendChild(trunk);
-
-        const bar = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        if (minX === maxX) {
-          bar.setAttribute("x1", minX - barPad);
-          bar.setAttribute("x2", maxX + barPad);
-        } else {
-          const x1 = minX + barInset;
-          const x2 = maxX - barInset;
-          if (x2 - x1 < barPad * 2) {
-            bar.setAttribute("x1", minX - barPad);
-            bar.setAttribute("x2", maxX + barPad);
-          } else {
-            bar.setAttribute("x1", x1);
-            bar.setAttribute("x2", x2);
-          }
-        }
-        bar.setAttribute("y1", midY);
-        bar.setAttribute("y2", midY);
-        bar.setAttribute("stroke", stroke);
-        bar.setAttribute("stroke-width", "2.5");
-        bar.setAttribute("stroke-linecap", "round");
-        treeLines.appendChild(bar);
-
-        if (childPoints.length > 1) {
-          const sorted = [...childPoints].sort((a, b) => a.x - b.x);
-          for (let i = 0; i < sorted.length - 1; i += 1) {
-            const midX = (sorted[i].x + sorted[i + 1].x) / 2;
-            const divider = document.createElementNS("http://www.w3.org/2000/svg", "line");
-            divider.setAttribute("x1", midX);
-            divider.setAttribute("y1", midY - 6);
-            divider.setAttribute("x2", midX);
-            divider.setAttribute("y2", midY + 6);
-            divider.setAttribute("stroke", stroke);
-            divider.setAttribute("stroke-width", "2");
-            divider.setAttribute("stroke-linecap", "round");
-            treeLines.appendChild(divider);
-          }
-        }
-
-        childPoints.forEach((point) => {
-          const stem = document.createElementNS("http://www.w3.org/2000/svg", "path");
-          stem.setAttribute("d", `M ${point.x} ${midY} V ${point.y}`);
-          stem.setAttribute("fill", "none");
-          stem.setAttribute("stroke", stroke);
-          stem.setAttribute("stroke-width", "2.5");
-          stem.setAttribute("stroke-linecap", "round");
-          treeLines.appendChild(stem);
-        });
-      }
-
-      const partnerCards = parentEl.querySelectorAll(".person-card");
-      if (partnerCards.length === 2) {
-        const leftBox = partnerCards[0].getBoundingClientRect();
-        const rightBox = partnerCards[1].getBoundingClientRect();
-        const y = leftBox.top - canvasBox.top + leftBox.height / 2;
-        const x1 = leftBox.right - canvasBox.left;
-        const x2 = rightBox.left - canvasBox.left;
-        const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        line.setAttribute("x1", x1 + 8);
-        line.setAttribute("y1", y);
-        line.setAttribute("x2", x2 - 8);
-        line.setAttribute("y2", y);
-        line.setAttribute("stroke", `${branchPalette[node.branchId] || "#7a8a80"}CC`);
-        line.setAttribute("stroke-width", "2.5");
-        line.setAttribute("stroke-linecap", "round");
-        treeLines.appendChild(line);
-      }
-    }
-
-    node.children.forEach(drawNodeEdges);
-  }
-
-  drawNodeEdges(root);
-}
-
-function renderTimeline() {
-  if (!timelineSection) return;
-  timelineList.innerHTML = "";
-  const depthMap = getPersonDepthMap();
-  const parentKeyByChild = new Map();
-  treeData.unions.forEach((union) => {
-    const parents = [union.partner1, union.partner2].filter(Boolean).sort().join("|") || "unknown";
-    union.children.forEach((childId) => {
-      if (!parentKeyByChild.has(childId)) parentKeyByChild.set(childId, parents);
-    });
-  });
-    const entries = treeData.people.map((person) => {
-      const birth = parseYear(person.birth);
-      const birthDate = parseDateValue(person.birth);
-      const birthMonth = birthDate ? birthDate.getMonth() + 1 : null;
-      const birthDay = birthDate ? birthDate.getDate() : null;
-      const birthTime = birthDate ? birthDate.getTime() : null;
-      const order = birthTime ?? Number.POSITIVE_INFINITY;
-      const gender = detectGenderFromName(person.name) || "unknown";
-      const nameSort = formatDisplayName(person.name).toLowerCase();
-      const parentKey = parentKeyByChild.get(person.id) || "zzzz";
-      return { person, birth, birthMonth, birthDay, birthTime, order, gender, nameSort, parentKey };
-    });
-
-  const filtered = entries.filter(({ person, birth, birthMonth, gender }) => {
-    if (timelineFilters.generation !== "all") {
-      const depth = depthMap.get(person.id);
-      if (!depth || String(depth) !== String(timelineFilters.generation)) return false;
-    }
-    if (timelineFilters.month !== "all") {
-      if (!birthMonth || String(birthMonth) !== String(timelineFilters.month)) return false;
-    }
-    if (timelineFilters.gender !== "all" && gender !== timelineFilters.gender) return false;
-    return true;
-  });
-
-  const genderOrder = { male: 1, female: 2, unknown: 3 };
-  const sortMode = timelineFilters.sort || "year";
-    filtered.sort((a, b) => {
-      if (sortMode === "year") {
-        const ay = a.birth ?? 9999;
-        const by = b.birth ?? 9999;
-        if (ay !== by) return ay - by;
-        const am = a.birthMonth ?? 99;
-        const bm = b.birthMonth ?? 99;
-        if (am !== bm) return am - bm;
-        const ad = a.birthDay ?? 99;
-        const bd = b.birthDay ?? 99;
-        if (ad !== bd) return ad - bd;
-        return a.nameSort.localeCompare(b.nameSort);
-      }
-      if (sortMode === "age") {
-        const at = a.birthTime ?? Number.POSITIVE_INFINITY;
-        const bt = b.birthTime ?? Number.POSITIVE_INFINITY;
-        if (at !== bt) return at - bt;
-      return a.nameSort.localeCompare(b.nameSort);
-    }
-    if (sortMode === "alpha") {
-      return a.nameSort.localeCompare(b.nameSort);
-    }
-    if (sortMode === "month") {
-      const am = a.birthMonth ?? 99;
-      const bm = b.birthMonth ?? 99;
-      if (am !== bm) return am - bm;
-      const ad = a.birthDay ?? 99;
-      const bd = b.birthDay ?? 99;
-      if (ad !== bd) return ad - bd;
-      return a.nameSort.localeCompare(b.nameSort);
-    }
-    if (sortMode === "gender") {
-      const ag = genderOrder[a.gender] ?? 9;
-      const bg = genderOrder[b.gender] ?? 9;
-      if (ag !== bg) return ag - bg;
-      return a.nameSort.localeCompare(b.nameSort);
-    }
-    if (sortMode === "parent") {
-      if (a.parentKey !== b.parentKey) return a.parentKey.localeCompare(b.parentKey);
-      if (a.order !== b.order) return a.order - b.order;
-      return a.nameSort.localeCompare(b.nameSort);
-    }
-    return a.order - b.order;
-  });
-
-  const t = i18n[lang] || i18n.ms;
-  filtered.forEach(({ person }) => {
-    const item = document.createElement("div");
-    item.className = "timeline-item";
-    if (person.death) item.classList.add("deceased");
-    const node = nodeByPersonId.get(person.id);
-    if (node && Number.isFinite(node.branchId)) {
-      item.classList.add("timeline-branch");
-      item.style.setProperty("--branch-color", branchPalette[node.branchId] || "var(--primary)");
-    } else {
-      if (softPeachPeople.has(person.id)) item.classList.add("branch-soft-peach");
-      if (babyBluePeople.has(person.id)) item.classList.add("branch-baby-blue");
-      if (mintGreenPeople.has(person.id)) item.classList.add("branch-mint-green");
-      if (lavenderPeople.has(person.id)) item.classList.add("branch-lavender");
-    }
-    const birthDate = parseDateValue(person.birth);
-    const age = !person.death ? calcAge(birthDate) : null;
-    const hasBirth = Boolean(person.birth);
-    const hasDeath = Boolean(person.death);
-    const metaLine = hasBirth && hasDeath
-      ? `${formatDateDisplay(person.birth)} - ${formatDateDisplay(person.death)}`
-      : hasBirth
-        ? `${t.bornPrefix}${formatDateDisplay(person.birth)}`
-        : t.datesUnknown;
-    const ageLine = age !== null ? `${t.ageLabel}: ${age}` : "";
-    item.innerHTML = `
-      <div class="timeline-name">${formatDisplayName(person.name)}</div>
-      <div class="timeline-meta">${metaLine}</div>
-      ${ageLine ? `<div class="timeline-age">${ageLine}</div>` : ""}
-      <div class="timeline-relation">${person.relation || ""}</div>
-    `;
-    item.addEventListener("click", () => {
-      if (isMobileView()) {
-        openTimelineInlineDetail(person, item);
-        selectedPersonId = person.id;
-        updateUrlState();
-        return;
-      }
-      openModal(person);
-      updateStoryPanel(person);
-      selectedPersonId = person.id;
-      applySelectionHighlight(person.id);
-      updateUrlState();
-    });
-    timelineList.appendChild(item);
-  });
-  updateTimelineActiveFilters();
-}
-
-function parseYear(value) {
-  if (!value) return null;
-  const match = String(value).match(/(\d{4})/);
-  return match ? Number(match[1]) : null;
-}
-
-function parseDateValue(value) {
-  if (!value) return null;
-  if (value instanceof Date) {
-    return Number.isNaN(value.getTime()) ? null : value;
-  }
-  const str = String(value).trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
-    const [y, m, d] = str.split("-").map(Number);
-    return new Date(y, m - 1, d);
-  }
-  const dmMatch = str.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
-  if (dmMatch) {
-    const d = Number(dmMatch[1]);
-    const m = Number(dmMatch[2]);
-    const y = Number(dmMatch[3]);
-    return new Date(y, m - 1, d);
-  }
-  if (/^\d{4}$/.test(str)) {
-    return new Date(Number(str), 0, 1);
-  }
-  const dt = new Date(str);
-  return Number.isNaN(dt.getTime()) ? null : dt;
-}
-
-function formatDateDisplay(value) {
-  if (!value) return "";
-  if (value instanceof Date && !Number.isNaN(value.getTime())) {
-    const d = String(value.getDate()).padStart(2, "0");
-    const m = String(value.getMonth() + 1).padStart(2, "0");
-    const y = value.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
-  const str = String(value).trim();
-  if (!str) return "";
-  if (/^\d{4}$/.test(str)) return str;
-  const parsed = parseDateValue(str);
-  if (parsed) {
-    const d = String(parsed.getDate()).padStart(2, "0");
-    const m = String(parsed.getMonth() + 1).padStart(2, "0");
-    const y = parsed.getFullYear();
-    return `${d}/${m}/${y}`;
-  }
-  return str;
-}
-
-function splitNameByBin(fullName) {
-  const name = String(fullName || "").trim();
-  if (!name) return { first: "", last: "" };
-  const parts = name.split(/\s+/);
-  const idx = parts.findIndex((p) => /^(bin|binti|bt)$/i.test(p));
-  if (idx > 0 && idx < parts.length - 1) {
-    return {
-      first: parts.slice(0, idx).join(" "),
-      last: parts.slice(idx + 1).join(" ")
-    };
-  }
-  return {
-    first: parts[0],
-    last: parts.slice(1).join(" ")
-  };
-}
-
-function detectGenderFromName(fullName) {
-  const name = String(fullName || "").toLowerCase();
-  if (name.includes(" binti ") || name.includes(" bt ")) return "female";
-  if (name.includes(" bin ")) return "male";
-  return "";
-}
-
-function isPartnered(personId) {
-  if (!treeData?.unions) return false;
-  return treeData.unions.some((u) => u.partner1 === personId || u.partner2 === personId);
-}
-
-function localizeTagText(text, langCode) {
-  const raw = String(text || "").trim();
-  if (!raw) return "";
-  if (langCode !== "en") return raw;
-  const map = {
-    "anak sulung": "First child",
-    "anak pertama": "First child",
-    "anak kedua": "Second child",
-    "anak ketiga": "Third child",
-    "anak keempat": "Fourth child",
-    "anak kelima": "Fifth child",
-    "anak keenam": "Sixth child",
-    "anak ketujuh": "Seventh child",
-    "anak kelapan": "Eighth child",
-    "anak kesembilan": "Ninth child",
-    "anak kesepuluh": "Tenth child",
-    "cucu": "Grandchild",
-    "cicit": "Great-grandchild",
-    "menantu": "In-law",
-    "tok": "Grandmother",
-    "wan": "Grandfather",
-    "isteri": "Wife",
-    "suami": "Husband"
-  };
-  const lower = raw.toLowerCase();
-  if (map[lower]) return map[lower];
-  const match = lower.match(/^anak ke-(\d+)$/);
-  if (match) return `Child #${match[1]}`;
-  return raw;
-}
-
-function calcAge(birthDate, refDate = new Date()) {
-  if (!birthDate) return null;
-  let age = refDate.getFullYear() - birthDate.getFullYear();
-  const m = refDate.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && refDate.getDate() < birthDate.getDate())) {
-    age -= 1;
-  }
-  return age >= 0 ? age : null;
-}
-
-function generationColor(depth) {
-  const index = (depth - 1) % branchPalette.length;
-  return branchPalette[index];
-}
-
-function initials(name) {
-  return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase();
-}
-
-function formatDisplayName(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return "";
-  const isAllUpper = raw === raw.toUpperCase();
-  if (!isAllUpper) return raw;
-  return raw
-    .toLowerCase()
-    .split(/\s+/)
-    .map((part) => {
-      if (!part) return "";
-      if (part === "bin" || part === "binti" || part === "bt") return part;
-      return part
-        .split("-")
-        .map((chunk) => (chunk ? chunk[0].toUpperCase() + chunk.slice(1) : ""))
-        .join("-");
-    })
-    .join(" ");
-}
-
-function formatDates(birth, death) {
-  const t = i18n[lang] || i18n.ms;
-  if (!birth && !death) return t.datesUnknown;
-  if (birth && death) return `${formatDateDisplay(birth)} - ${formatDateDisplay(death)}`;
-  if (birth) {
-    const birthDate = parseDateValue(birth);
-    const age = !death ? calcAge(birthDate) : null;
-    const ageText = age !== null ? ` (${t.ageLabel}: ${age})` : "";
-    return `${t.bornPrefix}${formatDateDisplay(birth)}${ageText}`;
-  }
-  return `${t.diedPrefix}${formatDateDisplay(death)}`;
-}
-
-function setStoryPanelOpen(isOpen) {
-  if (!app) return;
-  app.classList.toggle("story-open", isOpen);
-}
-
-function closeStoryPanel() {
-  selectedPersonId = "";
-  clearSelectionHighlight();
-  if (panelEditForm) panelEditForm.hidden = true;
-  if (storyPanel) storyPanel.hidden = true;
-  setStoryPanelOpen(false);
-}
-
-function openModal(person) {
-  const t = i18n[lang] || i18n.ms;
-  if (!storyContent) return;
-  if (storyPanel) storyPanel.hidden = false;
-  setStoryPanelOpen(true);
-  const birthDate = parseDateValue(person.birth);
-  const age = !person.death ? calcAge(birthDate) : null;
-  const ageText = age !== null ? ` (${t.ageLabel}: ${age})` : "";
-  storyTitle.textContent = formatDisplayName(person.name);
-  storyContent.innerHTML = `
-    <div class="story-detail"><strong>${t.modalRelation}</strong><span>${person.relation || "-"}</span></div>
-    <div class="story-detail"><strong>${t.modalBirth}</strong><span>${formatDateDisplay(person.birth) || "-"}${ageText}</span></div>
-    <div class="story-detail"><strong>${t.modalDeath}</strong><span>${formatDateDisplay(person.death) || "-"}</span></div>
-    <div class="story-detail"><strong>${t.modalNote}</strong><span>${person.note || "-"}</span></div>
-    <div class="story-detail"><strong>${t.modalStory}</strong><span>${person.story || "-"}</span></div>
-  `;
-
-  if (panelEditForm) panelEditForm.hidden = true;
-  if (panelEditBtn) panelEditBtn.hidden = false;
-
-  if (panelEditName) panelEditName.value = person.name || "";
-  if (panelEditFirst && panelEditLast) {
-    const split = splitNameByBin(person.name || "");
-    panelEditFirst.value = split.first || "";
-    panelEditLast.value = split.last || "";
-  }
-  if (panelEditRelation) panelEditRelation.value = person.relation || "";
-  if (panelEditBirth) panelEditBirth.value = person.birth || "";
-  if (panelEditDeath) panelEditDeath.value = person.death || "";
-  if (panelEditPhoto) panelEditPhoto.value = person.photo || "";
-  if (panelEditNote) panelEditNote.value = person.note || "";
-  if (panelEditStory) panelEditStory.value = person.story || "";
-  const inferredGender = detectGenderFromName(person.name);
-  panelGenderInputs.forEach((input) => {
-    input.checked = inferredGender === input.value;
-  });
-
-  if (panelEditName) {
-    panelEditName.oninput = () => {
-      const split = splitNameByBin(panelEditName.value || "");
-      if (panelEditFirst) panelEditFirst.value = split.first || "";
-      if (panelEditLast) panelEditLast.value = split.last || "";
-      const gender = detectGenderFromName(panelEditName.value);
-      panelGenderInputs.forEach((input) => {
-        input.checked = gender === input.value;
-      });
-    };
-  }
-
-  if (panelEditPhotoFile) {
-    panelEditPhotoFile.onchange = async (event) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
-      try {
-        const dataUrl = await fileToDataUrl(file);
-        panelEditPhoto.value = dataUrl;
-      } finally {
-        panelEditPhotoFile.value = "";
-      }
-    };
-  }
-
-  if (panelEditBtn) {
-    panelEditBtn.onclick = () => {
-      const pw = window.prompt("Masukkan kata laluan:");
-      if (pw !== "1234") return;
-      if (panelEditForm) panelEditForm.hidden = false;
-    };
-  }
-
-  if (panelCloseBtn) {
-    panelCloseBtn.onclick = closeStoryPanel;
-    panelCloseBtn.addEventListener("touchstart", closeStoryPanel, { passive: true });
-  }
-
-  if (panelCancelBtn) {
-    panelCancelBtn.onclick = () => {
-      if (panelEditForm) panelEditForm.hidden = true;
-    };
-  }
-
-
-  if (panelEditForm) {
-    panelEditForm.onsubmit = (event) => {
-      event.preventDefault();
-      const fullName = panelEditName.value.trim();
-      const split = splitNameByBin(fullName);
-      person.firstName = split.first || "";
-      person.lastName = split.last || "";
-      person.name = fullName;
-      person.relation = panelEditRelation.value.trim();
-      person.birth = panelEditBirth.value.trim();
-      person.death = panelEditDeath.value.trim();
-      person.photo = panelEditPhoto.value.trim();
-      person.note = panelEditNote.value.trim();
-      person.story = panelEditStory.value.trim();
-      person.gender = detectGenderFromName(person.name);
-      storeData();
-      rebuildFromData();
-      if (panelEditForm) panelEditForm.hidden = true;
-      openModal(person);
-    };
-  }
-}
-
-function updateStoryPanel(person) {
-  if (storyTitle) storyTitle.textContent = formatDisplayName(person.name);
-  if (storyBody) storyBody.textContent = person.story || person.note || i18n[lang].storyEmpty;
-  if (storyBreadcrumb) storyBreadcrumb.textContent = buildBreadcrumbLine(person.id);
-  if (storyFocusActions) storyFocusActions.hidden = !(treeView === "focus" && viewMode === "tree");
-  updateExpandButtons(person.id);
-}
-
-function updateExpandButtons(personId) {
-  const hasParents = getParentsOf(personId).length > 0;
-  const hasChildren = getChildrenOf(personId).length > 0;
-  const hasSpouses = getSpousesOf(personId).length > 0;
-  const hasSiblings = getSiblingsOf(personId).length > 0;
-  if (expandParentsBtn) expandParentsBtn.disabled = !hasParents;
-  if (expandChildrenBtn) expandChildrenBtn.disabled = !hasChildren;
-  if (expandSpousesBtn) expandSpousesBtn.disabled = !hasSpouses;
-  if (expandSiblingsBtn) expandSiblingsBtn.disabled = !hasSiblings;
-}
-
-function openTimelineInlineDetail(person, itemEl) {
-  if (!timelineList || !itemEl) return;
-  const existing = timelineList.querySelector(".timeline-detail");
-  if (existing) existing.remove();
-  const t = i18n[lang] || i18n.ms;
-  const birthDate = parseDateValue(person.birth);
-  const age = !person.death ? calcAge(birthDate) : null;
-  const ageText = age !== null ? `${t.ageLabel}: ${age}` : "";
-  const detail = document.createElement("div");
-  detail.className = "timeline-detail";
-  detail.innerHTML = `
-    <div class="timeline-detail-head">
-      <div class="timeline-detail-title">${formatDisplayName(person.name)}</div>
-      <button type="button" class="timeline-detail-close" aria-label="${t.modalClose}">×</button>
-    </div>
-    <div class="timeline-detail-grid">
-      <div class="timeline-detail-row"><strong>${t.modalRelation}</strong><span>${person.relation || "-"}</span></div>
-      <div class="timeline-detail-row">
-        <strong>${t.modalBirth}</strong>
-        <span>
-          <div>${formatDateDisplay(person.birth) || "-"}</div>
-          ${ageText ? `<div class="timeline-detail-age">${ageText}</div>` : ""}
-        </span>
-      </div>
-      <div class="timeline-detail-row"><strong>${t.modalDeath}</strong><span>${formatDateDisplay(person.death) || "-"}</span></div>
-      <div class="timeline-detail-row"><strong>${t.modalNote}</strong><span>${person.note || "-"}</span></div>
-      <div class="timeline-detail-row"><strong>${t.modalStory}</strong><span>${person.story || "-"}</span></div>
-    </div>
-  `;
-  const closeBtn = detail.querySelector(".timeline-detail-close");
-  if (closeBtn) {
-    closeBtn.addEventListener("click", () => {
-      detail.remove();
-    });
-  }
-  itemEl.insertAdjacentElement("afterend", detail);
-  detail.scrollIntoView({ behavior: "smooth", block: "nearest" });
-}
-
-on(modal, "click", (event) => {
-  if (!event.target.dataset.close) return;
-  modal.classList.remove("active");
-  modal.setAttribute("aria-hidden", "true");
-});
-
-on(panelCloseBtn, "click", closeStoryPanel);
-on(panelCloseBtn, "touchstart", closeStoryPanel, { passive: true });
-
-function bindExpandAction(btn, options) {
-  if (!btn) return;
-  btn.addEventListener("click", () => {
-    if (!selectedPersonId) return;
-    if (treeView !== "focus") setTreeView("focus");
-    const before = visiblePeopleIds.size;
-    expandAroundPerson(selectedPersonId, options);
-    const added = visiblePeopleIds.size - before;
-    renderScene();
-    updateViewInfoBar();
-    requestAnimationFrame(() => centerOnPerson(selectedPersonId));
-    updateExpandButtons(selectedPersonId);
-    const t = i18n[lang] || i18n.ms;
-    if (added > 0) {
-      const labels = [];
-      if (options.parents) labels.push(t.expandParents);
-      if (options.children) labels.push(t.expandChildren);
-      if (options.spouses) labels.push(t.expandSpouses);
-      if (options.siblings) labels.push(t.expandSiblings);
-      flashTreeStatus(formatText(t.expandAdded, { items: labels.join(" + ") }));
-    } else {
-      flashTreeStatus(t.expandNone);
-    }
-  });
-}
-
-bindExpandAction(expandParentsBtn, { parents: true });
-bindExpandAction(expandChildrenBtn, { children: true });
-bindExpandAction(expandSpousesBtn, { spouses: true });
-bindExpandAction(expandSiblingsBtn, { siblings: true });
-
-function applyZoom() {
-  if (!treeCanvas || !treeLines || !treeZoom) return;
-  if (!Number.isFinite(scale) || scale <= 0) {
-    scale = 1;
-  }
-  treeCanvas.style.transform = `scale(${scale})`;
-  treeLines.style.transform = `scale(${scale})`;
-  treeZoom.style.width = `${baseSize.width * scale}px`;
-  treeZoom.style.height = `${baseSize.height * scale}px`;
-  updateMinimap();
-}
-
-const actionEntries = [
-  ["zoom-in", zoomInBtn],
-  ["zoom-out", zoomOutBtn],
-  ["zoom-reset", zoomResetBtn],
-  ["reset-view", resetViewBtn],
-  ["zoom-fit", zoomFitBtn],
-  ["toggle-theme", toggleThemeBtn],
-  ["lang-toggle", langToggleBtn],
-  ["view-toggle", viewToggle],
-  ["export-png", exportPngBtn],
-  ["export-pdf", exportPdfBtn]
-];
-const actionMap = new Map(actionEntries.filter(([, el]) => el));
-
-function runAction(actionId) {
-  const btn = actionMap.get(actionId);
-  if (btn) btn.click();
-}
-
-document.querySelectorAll(".mobile-actions [data-action]").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    runAction(btn.dataset.action);
-  });
-});
-
-if (mobileActionSelect) {
-  mobileActionSelect.addEventListener("change", () => {
-    if (mobileActionGo) {
-      mobileActionGo.disabled = !mobileActionSelect.value;
-    }
-  });
-}
-
-if (mobileActionGo) {
-  mobileActionGo.addEventListener("click", () => {
-    const actionId = mobileActionSelect?.value;
-    if (!actionId) return;
-    runAction(actionId);
-    if (mobileActionSelect) mobileActionSelect.value = "";
-    mobileActionGo.disabled = true;
-  });
-}
-
-if (zoomInBtn) {
-  zoomInBtn.addEventListener("click", () => {
-    scale = Math.min(2.2, scale + 0.1);
-    applyZoom();
-    savePrefs();
-    scheduleRender();
-  });
-}
-
-if (zoomOutBtn) {
-  zoomOutBtn.addEventListener("click", () => {
-    scale = Math.max(0.6, scale - 0.1);
-    applyZoom();
-    savePrefs();
-    scheduleRender();
-  });
-}
-
-if (zoomResetBtn) {
-  zoomResetBtn.addEventListener("click", () => {
-    scale = 1;
-    applyZoom();
-    savePrefs();
-    scheduleRender();
-  });
-}
-
-if (zoomFitBtn) {
-  zoomFitBtn.addEventListener("click", () => {
-    fitToScreen();
-    savePrefs();
-  });
-}
-
-if (focusEldersBtn) {
-  focusEldersBtn.addEventListener("click", () => {
-    const elder = findElderPerson();
-    if (elder) focusPerson(elder.id, true);
-  });
-}
-
-if (backTopBtn) {
-  backTopBtn.addEventListener("click", () => {
-    treeWrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
-  });
-}
-
-if (pathToggleBtn) {
-  pathToggleBtn.addEventListener("click", () => {
-    pathMode = !pathMode;
-    applyLineageHighlight();
-    savePrefs();
-  });
-}
-
-if (compactToggleBtn) {
-  compactToggleBtn.addEventListener("click", () => {
-    compactMode = !compactMode;
-    document.body.classList.toggle("compact", compactMode);
-    applyLanguage();
-    savePrefs();
-  });
-}
-
-if (langToggleBtn) {
-  langToggleBtn.addEventListener("change", () => {
-    lang = langToggleBtn.checked ? "en" : "ms";
-    applyLanguage();
-    scheduleRender();
-    savePrefs();
-  });
-}
-
-if (themePresetSelect) {
-  themePresetSelect.addEventListener("change", () => {
-    themePreset = themePresetSelect.value || "default";
-    applyThemePreset();
-    savePrefs();
-  });
-}
-
-if (controlsToggleBtn) {
-  controlsToggleBtn.addEventListener("click", () => {
-    toggleControlsCollapsed();
-  });
-}
-
-if (mobilePanelBtn) {
-  mobilePanelBtn.addEventListener("click", () => {
-    toggleControlsCollapsed();
-  });
-}
-
-if (bottomSheetHandle) {
-  bottomSheetHandle.addEventListener("click", () => {
-    toggleControlsCollapsed();
-  });
-}
-
-const sheetControls = document.querySelector("#bottom-sheet .controls");
-const sheetDragState = {
-  active: false,
-  startY: 0,
-  startX: 0,
-  deltaY: 0,
-  deltaX: 0
-};
-
-const setSheetOffset = (offset) => {
-  if (!bottomSheet) return;
-  bottomSheet.style.transform = `translateY(${offset}px)`;
-};
-
-const resetSheetOffset = () => {
-  if (!bottomSheet) return;
-  bottomSheet.style.transform = "";
-  bottomSheet.classList.remove("is-dragging");
-  sheetDragState.active = false;
-  sheetDragState.deltaY = 0;
-  sheetDragState.deltaX = 0;
-};
-
-if (bottomSheet) {
-  bottomSheet.addEventListener("touchstart", (event) => {
-    if (!isMobileView()) return;
-    if (event.target.closest("#mobile-panel-btn")) return;
-    if (event.target.closest("#sheet-handle")) return;
-    const targetInControls = sheetControls && sheetControls.contains(event.target);
-    if (targetInControls && sheetControls.scrollTop > 0 && !controlsCollapsed) return;
-    const touch = event.touches[0];
-    sheetDragState.active = true;
-    sheetDragState.startY = touch.clientY;
-    sheetDragState.startX = touch.clientX;
-    sheetDragState.deltaY = 0;
-    sheetDragState.deltaX = 0;
-    bottomSheet.classList.add("is-dragging");
-  }, { passive: true });
-
-  bottomSheet.addEventListener("touchmove", (event) => {
-    if (!sheetDragState.active || !isMobileView()) return;
-    const touch = event.touches[0];
-    const dy = touch.clientY - sheetDragState.startY;
-    const dx = touch.clientX - sheetDragState.startX;
-    sheetDragState.deltaY = dy;
-    sheetDragState.deltaX = dx;
-    if (Math.abs(dx) > Math.abs(dy)) return;
-    if (controlsCollapsed) {
-      const offset = Math.min(0, dy);
-      setSheetOffset(offset);
-    } else {
-      const offset = Math.max(0, dy);
-      setSheetOffset(offset);
-    }
-    event.preventDefault();
-  }, { passive: false });
-
-  bottomSheet.addEventListener("touchend", () => {
-    if (!sheetDragState.active) return;
-    const dy = sheetDragState.deltaY;
-    if (!controlsCollapsed && dy > 60) {
-      toggleControlsCollapsed(true);
-    } else if (controlsCollapsed && dy < -40) {
-      toggleControlsCollapsed(false);
-    }
-    resetSheetOffset();
-  });
-
-  bottomSheet.addEventListener("touchcancel", resetSheetOffset);
-}
-
-if (mobileSettingsBtn) {
-  mobileSettingsBtn.addEventListener("click", () => openSettingsModal());
-  mobileSettingsBtn.addEventListener("touchstart", () => openSettingsModal(), { passive: true });
-}
-
-if (mobileSearchBtn) {
-  mobileSearchBtn.addEventListener("click", () => {
-    if (controlsCollapsed) {
-      toggleControlsCollapsed(false);
-    }
-    if (searchInput) {
-      setTimeout(() => {
-        searchInput.focus();
-      }, 50);
-    }
-  });
-  mobileSearchBtn.addEventListener("touchstart", () => {
-    if (controlsCollapsed) {
-      toggleControlsCollapsed(false);
-    }
-  }, { passive: true });
-}
-
-if (tipOverlay) {
-  tipOverlay.addEventListener("click", (event) => {
-    if (event.target === tipOverlay) closeTipOverlay();
-  });
-}
-
-if (tipCloseBtn) {
-  tipCloseBtn.addEventListener("click", closeTipOverlay);
-}
-
-if (showAllModal) {
-  showAllModal.addEventListener("click", (event) => {
-    if (event.target === showAllModal) closeShowAllConfirm();
-  });
-}
-
-if (showAllContinueBtn) {
-  showAllContinueBtn.addEventListener("click", () => {
-    closeShowAllConfirm();
-    setTreeView("full", { fit: true, announce: true });
-    openMinimapNow();
-  });
-}
-
-if (showAllStayBtn) {
-  showAllStayBtn.addEventListener("click", () => {
-    closeShowAllConfirm();
-    setTreeView("focus");
-  });
-}
-
-if (searchOverlayClose) {
-  searchOverlayClose.addEventListener("click", closeSearchOverlay);
-}
-
-if (searchOverlay) {
-  searchOverlay.addEventListener("click", (event) => {
-    if (event.target === searchOverlay) closeSearchOverlay();
-  });
-}
-
-if (quickJumpBtn) {
-  quickJumpBtn.addEventListener("click", () => {
-    if (isMobileView()) {
-      openSearchOverlay();
-      return;
-    }
-    if (controlsCollapsed) {
-      toggleControlsCollapsed(false);
-    }
-    if (searchInput) {
-      setTimeout(() => {
-        searchInput.focus();
-      }, 50);
-    }
-  });
-}
-
-if (resetViewBtn) {
-  resetViewBtn.addEventListener("click", () => {
-    scale = 1;
-    applyZoom();
-    treeWrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
-    savePrefs();
-  });
-}
-
-if (clearCacheBtn) {
-  clearCacheBtn.addEventListener("click", () => {
-    clearSiteCache();
-  });
-}
-
-if (exportJsonBtn) {
-  exportJsonBtn.addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(treeData, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0, 10);
-    link.download = `salasilah-backup-${stamp}.json`;
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
-  });
-}
-
-if (importJsonBtn && importJsonFile) {
-  importJsonBtn.addEventListener("click", () => {
-    importJsonFile.click();
-  });
-
-  importJsonFile.addEventListener("change", async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const parsed = JSON.parse(text);
-      const errors = validateTreeData(parsed);
-      if (errors.length > 0) {
-        validateOutput.textContent = `${i18n[lang].validateErr} ${errors.join(" | ")}`;
-        return;
-      }
-      treeData = parsed;
-      storeData();
-      rebuildFromData();
-      validateOutput.textContent = i18n[lang].validateOk;
-    } catch (err) {
-      validateOutput.textContent = i18n[lang].importFail;
-    } finally {
-      importJsonFile.value = "";
-    }
-  });
-}
-
-if (validateDataBtn) {
-  validateDataBtn.addEventListener("click", () => {
-    const errors = validateTreeData(treeData);
-    if (errors.length === 0) {
-      validateOutput.textContent = i18n[lang].validateOk;
-    } else {
-      validateOutput.textContent = `${i18n[lang].validateErr} ${errors.join(" | ")}`;
-    }
-  });
-}
-
-let isPanning = false;
-let panStart = { x: 0, y: 0, scrollLeft: 0, scrollTop: 0 };
-let mousePanning = false;
-let pinchZooming = false;
-let pinchStartDistance = 0;
-let pinchStartScale = 1;
-
-const stopPointerPan = (event) => {
-  if (!treeWrap) return;
-  if (event && treeWrap.hasPointerCapture(event.pointerId)) {
-    treeWrap.releasePointerCapture(event.pointerId);
-  }
-  isPanning = false;
-  treeWrap.classList.remove("is-dragging");
-  if (virtualizationEnabled) scheduleRender();
-};
-
-if (treeWrap) {
-  treeWrap.addEventListener("touchstart", (event) => {
-    if (!isMobileView()) return;
-    if (event.touches.length !== 2) return;
-    const [t1, t2] = event.touches;
-    const dx = t2.clientX - t1.clientX;
-    const dy = t2.clientY - t1.clientY;
-    pinchZooming = true;
-    treeWrap.classList.add("pinch-zooming");
-    pinchStartDistance = Math.hypot(dx, dy) || 1;
-    pinchStartScale = scale;
-    isPanning = false;
-    treeWrap.classList.remove("is-dragging");
-  }, { passive: true });
-
-  treeWrap.addEventListener("touchmove", (event) => {
-    if (!pinchZooming) return;
-    if (event.touches.length !== 2) return;
-    const [t1, t2] = event.touches;
-    const dx = t2.clientX - t1.clientX;
-    const dy = t2.clientY - t1.clientY;
-    const distance = Math.hypot(dx, dy) || 1;
-    const ratio = distance / pinchStartDistance;
-    const next = Math.max(0.6, Math.min(2.2, pinchStartScale * ratio));
-    if (next !== scale) {
-      scale = next;
-      applyZoom();
-      scheduleRender();
-    }
-    event.preventDefault();
-  }, { passive: false });
-
-  treeWrap.addEventListener("touchend", (event) => {
-    if (!pinchZooming) return;
-    if (event.touches.length < 2) {
-      pinchZooming = false;
-      treeWrap.classList.remove("pinch-zooming");
-      savePrefs();
-    }
-  });
-
-  treeWrap.addEventListener("touchcancel", () => {
-    if (!pinchZooming) return;
-    pinchZooming = false;
-    treeWrap.classList.remove("pinch-zooming");
-  });
-
-  treeWrap.addEventListener("gesturestart", (event) => {
-    if (!isMobileView()) return;
-    pinchZooming = true;
-    treeWrap.classList.add("pinch-zooming");
-    pinchStartScale = scale;
-    event.preventDefault();
-  });
-
-  treeWrap.addEventListener("gesturechange", (event) => {
-    if (!pinchZooming) return;
-    const next = Math.max(0.6, Math.min(2.2, pinchStartScale * event.scale));
-    if (next !== scale) {
-      scale = next;
-      applyZoom();
-      scheduleRender();
-    }
-    event.preventDefault();
-  });
-
-  treeWrap.addEventListener("gestureend", () => {
-    if (!pinchZooming) return;
-    pinchZooming = false;
-    treeWrap.classList.remove("pinch-zooming");
-    savePrefs();
-  });
-
-  treeWrap.addEventListener("pointerdown", (event) => {
-    if (!dragToPan) return;
-    if (event.target.closest(".person-card")) return;
-    isPanning = true;
-    treeWrap.setPointerCapture(event.pointerId);
-    treeWrap.classList.add("is-dragging");
-    panStart = {
-      x: event.clientX,
-      y: event.clientY,
-      scrollLeft: treeWrap.scrollLeft,
-      scrollTop: treeWrap.scrollTop
-    };
-    event.preventDefault();
-  });
-
-  treeWrap.addEventListener("pointermove", (event) => {
-    if (!dragToPan) return;
-    if (!isPanning) return;
-    if (!treeWrap.hasPointerCapture(event.pointerId)) return;
-    const dx = event.clientX - panStart.x;
-    const dy = event.clientY - panStart.y;
-    treeWrap.scrollLeft = panStart.scrollLeft - dx;
-    treeWrap.scrollTop = panStart.scrollTop - dy;
-    event.preventDefault();
-  });
-
-  treeWrap.addEventListener("pointerup", stopPointerPan);
-  treeWrap.addEventListener("pointercancel", stopPointerPan);
-
-  treeWrap.addEventListener("mousedown", (event) => {
-    if (!dragToPan) return;
-    if (event.button !== 0) return;
-    if (event.target.closest(".person-card")) return;
-    mousePanning = true;
-    treeWrap.classList.add("is-dragging");
-    panStart = {
-      x: event.clientX,
-      y: event.clientY,
-      scrollLeft: treeWrap.scrollLeft,
-      scrollTop: treeWrap.scrollTop
-    };
-    event.preventDefault();
-  });
-
-  treeWrap.addEventListener("dragstart", (event) => {
-    event.preventDefault();
-  });
-}
-
-window.addEventListener("mousemove", (event) => {
-  if (!dragToPan) return;
-  if (!mousePanning || !treeWrap) return;
-  const dx = event.clientX - panStart.x;
-  const dy = event.clientY - panStart.y;
-  treeWrap.scrollLeft = panStart.scrollLeft - dx;
-  treeWrap.scrollTop = panStart.scrollTop - dy;
-});
-
-window.addEventListener("mouseup", () => {
-  if (!mousePanning || !treeWrap) return;
-  mousePanning = false;
-  treeWrap.classList.remove("is-dragging");
-  if (virtualizationEnabled) scheduleRender();
-});
-
-let scrollStopTimer = null;
-if (treeWrap) {
-  treeWrap.addEventListener("scroll", () => {
-    updateMinimap();
-    if (scrollStopTimer) clearTimeout(scrollStopTimer);
-    if (isPanning || mousePanning) return;
-    if (!virtualizationEnabled) return;
-    scrollStopTimer = setTimeout(() => {
-      scheduleRender();
-    }, 80);
-  });
-}
-
-window.addEventListener("resize", () => {
-  scheduleRender();
-  updateMinimap();
-});
-
-function buildHighlightedName(name, query) {
-  const wrapper = document.createElement("span");
-  if (!query) {
-    wrapper.textContent = name;
-    return wrapper;
-  }
-  const lower = name.toLowerCase();
-  const idx = lower.indexOf(query);
-  if (idx < 0) {
-    wrapper.textContent = name;
-    return wrapper;
-  }
-  wrapper.appendChild(document.createTextNode(name.slice(0, idx)));
-  const mark = document.createElement("mark");
-  mark.textContent = name.slice(idx, idx + query.length);
-  wrapper.appendChild(mark);
-  wrapper.appendChild(document.createTextNode(name.slice(idx + query.length)));
-  return wrapper;
-}
-
-function setSearchActiveIndex(state, nextIndex) {
-  if (!state || state.results.length === 0) {
-    state.activeIndex = -1;
-    return;
-  }
-  const maxIndex = state.results.length - 1;
-  const clamped = Math.max(0, Math.min(maxIndex, nextIndex));
-  state.activeIndex = clamped;
-  state.resultsEl.querySelectorAll(".search-item").forEach((item) => {
-    const isActive = Number(item.dataset.index) === state.activeIndex;
-    item.classList.toggle("active", isActive);
-    if (isActive) {
-      state.inputEl.setAttribute("aria-activedescendant", item.id);
-    }
-  });
-}
-
-function selectSearchResult(state, index) {
-  const person = state.results[index];
-  if (!person) return;
-  state.resultsEl.classList.remove("active");
-  state.inputEl.value = formatDisplayName(person.name);
-  focusPerson(person.id, true);
-  closeSearchOverlay();
-}
-
-function initSearch(inputEl, resultsEl) {
-  if (!inputEl || !resultsEl) return;
   const state = {
-    inputEl,
-    resultsEl,
-    results: [],
-    activeIndex: -1
+    data: null,
+    peopleById: new Map(),
+    unions: [],
+    parentsByChild: new Map(),
+    childrenByParent: new Map(),
+    spousesByPerson: new Map(),
+    selectedId: "",
+    viewMode: "focus",
+    focusAncDepth: 1,
+    focusDescDepth: 1,
+    focusShowAllChildren: false,
+    expandedIds: new Set(),
+    genLimit: 3,
+    branchOnly: false,
+    listCache: [],
+    listRowHeight: 56,
+    listOverscan: 8,
+    fullScale: 1,
+    dimUntil: 0,
+    pathHighlight: new Set()
   };
-  resultsEl.setAttribute("role", "listbox");
-  if (resultsEl.id) inputEl.setAttribute("aria-controls", resultsEl.id);
 
-  inputEl.addEventListener("input", (event) => {
-    const query = event.target.value.trim().toLowerCase();
-    if (!query) {
-      resultsEl.classList.remove("active");
-      resultsEl.innerHTML = "";
-      clearHighlights();
-      state.results = [];
-      state.activeIndex = -1;
-      inputEl.removeAttribute("aria-activedescendant");
-      if (inputEl === searchInput) lastSearchResults = [];
+  const isMobile = () => window.matchMedia("(max-width: 960px)").matches;
+
+  function log(...args) {
+    console.log("[KAMI-tree]", ...args);
+  }
+
+  function setStatus(message, isError = false) {
+    if (!dom.status) return;
+    dom.status.textContent = message || "";
+    dom.status.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function showFatalError(err) {
+    console.error(err);
+    if (dom.fatalError) {
+      const msg = dom.fatalError.querySelector(".msg");
+      if (msg) msg.textContent = String(err?.stack || err || "Unknown error");
+      dom.fatalError.hidden = false;
+      dom.fatalError.classList.add("is-open");
+      dom.fatalError.setAttribute("aria-hidden", "false");
+    }
+  }
+
+  function closeFatalError() {
+    if (!dom.fatalError) return;
+    dom.fatalError.classList.remove("is-open");
+    dom.fatalError.setAttribute("aria-hidden", "true");
+    dom.fatalError.hidden = true;
+  }
+
+  function getDataUrlCandidates() {
+    const candidates = [];
+    const push = (url) => {
+      if (!url) return;
+      if (!candidates.includes(url)) candidates.push(url);
+    };
+    push("./data.json");
+    try {
+      push(new URL("data.json", window.location.href).toString());
+    } catch {
+      // ignore
+    }
+    try {
+      const path = window.location.pathname || "/";
+      const parts = path.split("/").filter(Boolean);
+      if (parts.length > 0) {
+        push(`${window.location.origin}/${parts[0]}/data.json`);
+      }
+      const basePath = `${window.location.origin}${path.endsWith("/") ? path : `${path}/`}`;
+      push(new URL("data.json", basePath).toString());
+    } catch {
+      // ignore
+    }
+    return candidates;
+  }
+
+  async function fetchDataJson(candidates) {
+    let lastErr = null;
+    for (const url of candidates) {
+      try {
+        console.info("[FETCH] trying", url);
+        const cacheBuster = url.includes("?") ? `&ts=${Date.now()}` : `?ts=${Date.now()}`;
+        const res = await fetch(`${url}${cacheBuster}`, { cache: "no-store" });
+        if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText} (${url})`);
+        const data = await res.json();
+        console.info("[FETCH] ok", url);
+        return data;
+      } catch (err) {
+        console.warn("[FETCH] failed", url, err);
+        lastErr = err;
+      }
+    }
+    throw lastErr || new Error("Failed to load data.json");
+  }
+
+  function validateData(data) {
+    if (!data || !Array.isArray(data.people) || !Array.isArray(data.unions)) {
+      throw new Error("Invalid data.json schema (expected people[] and unions[])");
+    }
+  }
+
+  function buildIndex(data) {
+    state.peopleById = new Map();
+    state.parentsByChild = new Map();
+    state.childrenByParent = new Map();
+    state.spousesByPerson = new Map();
+    state.unions = data.unions || [];
+
+    data.people.forEach((p) => state.peopleById.set(p.id, p));
+
+    state.unions.forEach((u) => {
+      const p1 = u.partner1;
+      const p2 = u.partner2;
+      if (p1 && p2) {
+        if (!state.spousesByPerson.has(p1)) state.spousesByPerson.set(p1, new Set());
+        if (!state.spousesByPerson.has(p2)) state.spousesByPerson.set(p2, new Set());
+        state.spousesByPerson.get(p1).add(p2);
+        state.spousesByPerson.get(p2).add(p1);
+      }
+      (u.children || []).forEach((childId) => {
+        if (!state.parentsByChild.has(childId)) state.parentsByChild.set(childId, []);
+        state.parentsByChild.get(childId).push({ union: u, parents: [p1, p2].filter(Boolean) });
+        [p1, p2].filter(Boolean).forEach((pid) => {
+          if (!state.childrenByParent.has(pid)) state.childrenByParent.set(pid, new Set());
+          state.childrenByParent.get(pid).add(childId);
+        });
+      });
+    });
+  }
+
+  function setSelected(id, options = {}) {
+    if (!id || !state.peopleById.has(id)) return;
+    state.selectedId = id;
+    highlightPath(id, { dim: options.fromSearch });
+    renderFocusView();
+    renderFullTree();
+    openDrawer(id);
+  }
+
+  function formatName(person) {
+    return person?.name || "(Tanpa nama)";
+  }
+
+  function getParents(id) {
+    const refs = state.parentsByChild.get(id) || [];
+    const parents = [];
+    refs.forEach((ref) => {
+      ref.parents.forEach((pid) => {
+        if (pid && state.peopleById.has(pid)) parents.push(state.peopleById.get(pid));
+      });
+    });
+    return parents;
+  }
+
+  function getSpouses(id) {
+    const set = state.spousesByPerson.get(id) || new Set();
+    return Array.from(set).map((pid) => state.peopleById.get(pid)).filter(Boolean);
+  }
+
+  function getChildren(id) {
+    const set = state.childrenByParent.get(id) || new Set();
+    return Array.from(set).map((pid) => state.peopleById.get(pid)).filter(Boolean);
+  }
+
+  function getAncestors(id, depth) {
+    const levels = [];
+    let current = [id];
+    for (let d = 0; d < depth; d += 1) {
+      const next = [];
+      current.forEach((cid) => {
+        getParents(cid).forEach((p) => {
+          if (!next.includes(p.id)) next.push(p.id);
+        });
+      });
+      if (next.length === 0) break;
+      levels.push(next.map((pid) => state.peopleById.get(pid)).filter(Boolean));
+      current = next;
+    }
+    return levels;
+  }
+
+  function getDescendants(id, depth) {
+    const levels = [];
+    let current = [id];
+    for (let d = 0; d < depth; d += 1) {
+      const next = [];
+      current.forEach((cid) => {
+        getChildren(cid).forEach((c) => {
+          if (!next.includes(c.id)) next.push(c.id);
+        });
+      });
+      if (next.length === 0) break;
+      levels.push(next.map((pid) => state.peopleById.get(pid)).filter(Boolean));
+      current = next;
+    }
+    return levels;
+  }
+
+  function getBreadcrumbPath(id) {
+    const chain = [];
+    let cursor = id;
+    let guard = 0;
+    while (cursor && guard < 12) {
+      guard += 1;
+      chain.push(cursor);
+      const parents = getParents(cursor);
+      if (!parents.length) break;
+      cursor = parents[0].id;
+    }
+    return chain.reverse();
+  }
+
+  function updateBreadcrumbs() {
+    if (!dom.breadcrumbs || !state.pathHighlight.size) return;
+    const labels = Array.from(state.pathHighlight).map((pid) => formatName(state.peopleById.get(pid)));
+    dom.breadcrumbs.textContent = labels.join(" > ");
+  }
+
+  function highlightPath(id, { dim = false } = {}) {
+    state.pathHighlight = new Set(getBreadcrumbPath(id));
+    if (dim) state.dimUntil = Date.now() + 1200;
+    updateBreadcrumbs();
+  }
+
+  function renderPersonCard(person, { compact = false, highlight = false } = {}) {
+    const card = document.createElement("button");
+    card.className = `person-card${compact ? " compact" : ""}${highlight ? " is-selected" : ""}`;
+    card.type = "button";
+    card.dataset.personId = person.id;
+    card.innerHTML = `
+      <span class="person-name">${formatName(person)}</span>
+      <span class="person-meta">${person.gender === "female" ? "?" : person.gender === "male" ? "?" : "�"} ${person.birth ? String(person.birth).slice(0,4) : ""}${person.death ? `�${String(person.death).slice(0,4)}` : ""}</span>
+    `;
+    card.addEventListener("click", () => setSelected(person.id));
+    return card;
+  }
+
+  function renderFocusView() {
+    if (!dom.focusView) return;
+    dom.focusView.innerHTML = "";
+
+    if (!state.selectedId) {
+      dom.focusView.innerHTML = `
+        <div class="empty-state">
+          <h3>Mulakan dengan Carian</h3>
+          <p>Cari nama ahli keluarga untuk fokus dan lihat ibu bapa, pasangan, dan anak.</p>
+        </div>
+      `;
       return;
     }
 
-    const depthMap = getPersonDepthMap();
-    const results = treeData.people.filter((person) => person.name.toLowerCase().includes(query));
-    resultsEl.innerHTML = "";
-    state.results = results;
-    state.activeIndex = results.length ? 0 : -1;
-    if (inputEl === searchInput) lastSearchResults = results;
+    const centerPerson = state.peopleById.get(state.selectedId);
+    const parents = getParents(centerPerson.id);
+    const spouses = getSpouses(centerPerson.id);
+    const children = getChildren(centerPerson.id);
 
-    if (results.length === 0) {
+    const ancestorsLevels = getAncestors(centerPerson.id, state.focusAncDepth);
+    const descLevels = getDescendants(centerPerson.id, state.focusDescDepth);
+
+    if (isMobile()) {
+      const accordion = document.createElement("div");
+      accordion.className = "focus-accordion";
+      accordion.appendChild(renderPersonCard(centerPerson, { highlight: true }));
+
+      const makeSection = (title, list, onExpand, compact) => {
+        const details = document.createElement("details");
+        details.open = true;
+        const summary = document.createElement("summary");
+        summary.textContent = title;
+        details.appendChild(summary);
+        const row = document.createElement("div");
+        row.className = "focus-row";
+        list.forEach((p) => row.appendChild(renderPersonCard(p, { compact })));
+        details.appendChild(row);
+        if (onExpand) {
+          const btn = document.createElement("button");
+          btn.className = "btn ghost small";
+          btn.type = "button";
+          btn.textContent = "Expand";
+          btn.addEventListener("click", onExpand);
+          details.appendChild(btn);
+        }
+        return details;
+      };
+
+      accordion.appendChild(makeSection("Parents", parents, () => {
+        state.focusAncDepth = Math.min(state.focusAncDepth + 1, 4);
+        renderFocusView();
+      }, false));
+
+      accordion.appendChild(makeSection("Spouses", spouses, null, false));
+
+      const childList = state.focusShowAllChildren ? children : children.slice(0, 4);
+      accordion.appendChild(makeSection("Children", childList, () => {
+        state.focusDescDepth = Math.min(state.focusDescDepth + 1, 4);
+        renderFocusView();
+      }, false));
+
+      dom.focusView.appendChild(accordion);
+      return;
+    }
+
+    const focusShell = document.createElement("div");
+    focusShell.className = "focus-shell";
+
+    const ancestors = document.createElement("div");
+    ancestors.className = "focus-block";
+    ancestors.innerHTML = `<div class="focus-block-head"><span>Parents</span><button class="btn ghost small" type="button">Expand Ancestors</button></div>`;
+    const ancBtn = ancestors.querySelector("button");
+    ancBtn.addEventListener("click", () => {
+      state.focusAncDepth = Math.min(state.focusAncDepth + 1, 4);
+      renderFocusView();
+    });
+
+    const parentsRow = document.createElement("div");
+    parentsRow.className = "focus-row";
+    parents.forEach((p) => parentsRow.appendChild(renderPersonCard(p)));
+    ancestors.appendChild(parentsRow);
+
+    ancestorsLevels.forEach((level) => {
+      const row = document.createElement("div");
+      row.className = "focus-row depth";
+      level.forEach((p) => row.appendChild(renderPersonCard(p, { compact: true })));
+      ancestors.appendChild(row);
+    });
+
+    const center = document.createElement("div");
+    center.className = "focus-center";
+    center.appendChild(renderPersonCard(centerPerson, { highlight: true }));
+
+    const spouseBlock = document.createElement("div");
+    spouseBlock.className = "focus-block";
+    spouseBlock.innerHTML = `<div class="focus-block-head"><span>Spouses</span></div>`;
+    const spousesRow = document.createElement("div");
+    spousesRow.className = "focus-row";
+    spouses.forEach((s) => spousesRow.appendChild(renderPersonCard(s)));
+    spouseBlock.appendChild(spousesRow);
+
+    const childrenBlock = document.createElement("div");
+    childrenBlock.className = "focus-block";
+    const childCount = children.length;
+    const childHead = document.createElement("div");
+    childHead.className = "focus-block-head";
+    childHead.innerHTML = `<span>Children</span>`;
+    if (childCount > 4 && !state.focusShowAllChildren) {
+      const moreBtn = document.createElement("button");
+      moreBtn.className = "btn ghost small";
+      moreBtn.type = "button";
+      moreBtn.textContent = `+${childCount - 4} more`;
+      moreBtn.addEventListener("click", () => {
+        state.focusShowAllChildren = true;
+        renderFocusView();
+      });
+      childHead.appendChild(moreBtn);
+    }
+    const childExpand = document.createElement("button");
+    childExpand.className = "btn ghost small";
+    childExpand.type = "button";
+    childExpand.textContent = "Expand Descendants";
+    childExpand.addEventListener("click", () => {
+      state.focusDescDepth = Math.min(state.focusDescDepth + 1, 4);
+      renderFocusView();
+    });
+    childHead.appendChild(childExpand);
+    childrenBlock.appendChild(childHead);
+
+    const childrenRow = document.createElement("div");
+    childrenRow.className = "focus-row";
+    (state.focusShowAllChildren ? children : children.slice(0, 4)).forEach((c) => childrenRow.appendChild(renderPersonCard(c)));
+    childrenBlock.appendChild(childrenRow);
+
+    descLevels.forEach((level) => {
+      const row = document.createElement("div");
+      row.className = "focus-row depth";
+      level.forEach((p) => row.appendChild(renderPersonCard(p, { compact: true })));
+      childrenBlock.appendChild(row);
+    });
+
+    focusShell.appendChild(ancestors);
+    focusShell.appendChild(center);
+    focusShell.appendChild(spouseBlock);
+    focusShell.appendChild(childrenBlock);
+
+    dom.focusView.appendChild(focusShell);
+  }
+
+  function buildFullList() {
+    const rootId = state.branchOnly && state.selectedId ? state.selectedId : (state.data.selfId || state.data.people?.[0]?.id);
+    if (!rootId) return [];
+    const list = [];
+    const visit = (id, depth) => {
+      if (!state.peopleById.has(id)) return;
+      if (state.genLimit && depth > state.genLimit) return;
+      list.push({ id, depth });
+      if (!state.expandedIds.has(id)) return;
+      const children = getChildren(id);
+      children.forEach((child) => visit(child.id, depth + 1));
+    };
+    visit(rootId, 1);
+    return list;
+  }
+
+  function renderFullTree() {
+    if (!dom.fullView || !dom.fullList || !dom.fullListInner) return;
+    if (state.viewMode !== "full") {
+      dom.fullView.hidden = true;
+      return;
+    }
+    dom.fullView.hidden = false;
+
+    state.listCache = buildFullList();
+    const total = state.listCache.length;
+    const containerHeight = dom.fullList.clientHeight || 400;
+    const startIndex = Math.max(0, Math.floor(dom.fullList.scrollTop / state.listRowHeight) - state.listOverscan);
+    const endIndex = Math.min(total, Math.ceil((dom.fullList.scrollTop + containerHeight) / state.listRowHeight) + state.listOverscan);
+
+    const slice = state.listCache.slice(startIndex, endIndex);
+    dom.fullTopSpacer.style.height = `${startIndex * state.listRowHeight}px`;
+    dom.fullBottomSpacer.style.height = `${(total - endIndex) * state.listRowHeight}px`;
+    dom.fullListInner.innerHTML = "";
+
+    const now = Date.now();
+    const dimActive = now < state.dimUntil;
+
+    slice.forEach((item) => {
+      const person = state.peopleById.get(item.id);
+      if (!person) return;
+      const row = document.createElement("div");
+      row.className = "full-row";
+      row.style.paddingLeft = `${(item.depth - 1) * 24}px`;
+      row.dataset.personId = item.id;
+      if (state.pathHighlight.has(item.id)) row.classList.add("is-path");
+      if (dimActive && !state.pathHighlight.has(item.id)) row.classList.add("is-dimmed");
+
+      const toggle = document.createElement("button");
+      toggle.className = "full-toggle";
+      toggle.type = "button";
+      const children = getChildren(item.id);
+      if (children.length === 0) {
+        toggle.textContent = "�";
+        toggle.disabled = true;
+      } else {
+        toggle.textContent = state.expandedIds.has(item.id) ? "-" : "+";
+      }
+      toggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (children.length === 0) return;
+        if (state.expandedIds.has(item.id)) {
+          state.expandedIds.delete(item.id);
+        } else {
+          state.expandedIds.add(item.id);
+        }
+        renderFullTree();
+      });
+
+      row.appendChild(toggle);
+      row.appendChild(renderPersonCard(person, { compact: true, highlight: state.selectedId === item.id }));
+      row.addEventListener("click", () => setSelected(item.id));
+      dom.fullListInner.appendChild(row);
+    });
+  }
+
+  function updateViewMode(next) {
+    state.viewMode = next === "full" ? "full" : "focus";
+    if (dom.viewFocusBtn) dom.viewFocusBtn.classList.toggle("is-active", state.viewMode === "focus");
+    if (dom.viewFullBtn) dom.viewFullBtn.classList.toggle("is-active", state.viewMode === "full");
+    if (dom.focusView) dom.focusView.hidden = state.viewMode !== "focus";
+    if (dom.fullView) dom.fullView.hidden = state.viewMode !== "full";
+    renderFocusView();
+    renderFullTree();
+  }
+
+  function updateStats() {
+    const people = state.data?.people || [];
+    const unions = state.data?.unions || [];
+    if (dom.statsPeople) dom.statsPeople.textContent = String(people.length || 0);
+    if (dom.statsCouples) dom.statsCouples.textContent = String(unions.length || 0);
+    let male = 0;
+    let female = 0;
+    people.forEach((p) => {
+      if (p.gender === "male") male += 1;
+      if (p.gender === "female") female += 1;
+    });
+    if (dom.statsMale) dom.statsMale.textContent = String(male);
+    if (dom.statsFemale) dom.statsFemale.textContent = String(female);
+    if (dom.statsCucu) dom.statsCucu.textContent = "-";
+    if (dom.statsCicit) dom.statsCicit.textContent = "-";
+    if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = "-";
+    if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = "-";
+  }
+
+  function openDrawer(id) {
+    if (!dom.drawer || !dom.drawerBody) return;
+    const person = state.peopleById.get(id);
+    if (!person) return;
+    dom.drawerTitle.textContent = formatName(person);
+    dom.drawerBody.innerHTML = `
+      <div class="drawer-meta">
+        <span>${person.gender === "female" ? "?" : person.gender === "male" ? "?" : "�"}</span>
+        <span>${person.birth ? String(person.birth).slice(0, 10) : "-"} ${person.death ? `� ${String(person.death).slice(0, 10)}` : ""}</span>
+      </div>
+      <div class="drawer-section">
+        <strong>Parents</strong>
+        <div class="drawer-row">${getParents(id).map((p) => formatName(p)).join(", ") || "-"}</div>
+      </div>
+      <div class="drawer-section">
+        <strong>Spouses</strong>
+        <div class="drawer-row">${getSpouses(id).map((p) => formatName(p)).join(", ") || "-"}</div>
+      </div>
+      <div class="drawer-section">
+        <strong>Children</strong>
+        <div class="drawer-row">${getChildren(id).map((p) => formatName(p)).join(", ") || "-"}</div>
+      </div>
+    `;
+    dom.drawer.classList.add("is-open");
+    dom.drawer.setAttribute("aria-hidden", "false");
+    if (dom.drawerCta) {
+      dom.drawerCta.onclick = () => {
+        updateViewMode("full");
+        state.branchOnly = true;
+        if (dom.branchOnlyBtn) dom.branchOnlyBtn.classList.add("is-active");
+        renderFullTree();
+      };
+    }
+    if (dom.drawerFocus) {
+      dom.drawerFocus.onclick = () => {
+        updateViewMode("focus");
+        renderFocusView();
+      };
+    }
+  }
+
+  function closeDrawer() {
+    if (!dom.drawer) return;
+    dom.drawer.classList.remove("is-open");
+    dom.drawer.setAttribute("aria-hidden", "true");
+  }
+
+  function renderSearchResults(matches, query) {
+    if (!dom.searchResults) return;
+    dom.searchResults.innerHTML = "";
+    if (!query) {
+      dom.searchResults.classList.remove("is-open");
+      return;
+    }
+    matches.slice(0, 8).forEach((p) => {
       const item = document.createElement("div");
       item.className = "search-item";
-      item.textContent = i18n[lang].searchNone;
-      resultsEl.appendChild(item);
-    } else {
-      results.forEach((person, index) => {
-        const item = document.createElement("div");
-        item.className = "search-item";
-        item.dataset.index = String(index);
-        item.id = `${resultsEl.id || "search"}-item-${index}`;
-        item.setAttribute("role", "option");
-        const name = document.createElement("div");
-        name.className = "search-name";
-        name.appendChild(buildHighlightedName(formatDisplayName(person.name), query));
-        const meta = document.createElement("div");
-        meta.className = "search-meta";
-        const relation = localizeTagText(person.relation || "", lang);
-        if (relation) {
-          const rel = document.createElement("span");
-          rel.className = "search-rel";
-          rel.textContent = relation;
-          meta.appendChild(rel);
-        }
-        const depth = depthMap.get(person.id);
-        if (depth) {
-          const gen = document.createElement("span");
-          gen.className = "search-gen";
-          gen.textContent = `G${depth}`;
-          meta.appendChild(gen);
-        }
-        const birthYear = parseYear(person.birth);
-        if (birthYear) {
-          const year = document.createElement("span");
-          year.className = "search-year";
-          year.textContent = `${i18n[lang].birthYear}: ${birthYear}`;
-          meta.appendChild(year);
-        }
-        item.appendChild(name);
-        if (meta.children.length) item.appendChild(meta);
-        item.addEventListener("click", () => {
-          selectSearchResult(state, index);
-        });
-        item.addEventListener("mouseenter", () => setSearchActiveIndex(state, index));
-        resultsEl.appendChild(item);
+      const name = formatName(p);
+      const idx = name.toLowerCase().indexOf(query.toLowerCase());
+      if (idx >= 0) {
+        const before = name.slice(0, idx);
+        const mid = name.slice(idx, idx + query.length);
+        const after = name.slice(idx + query.length);
+        item.innerHTML = `<span class="search-name">${before}<mark>${mid}</mark>${after}</span>`;
+      } else {
+        item.innerHTML = `<span class="search-name">${name}</span>`;
+      }
+      item.addEventListener("click", () => {
+        setSelected(p.id, { fromSearch: true });
+        dom.searchResults.classList.remove("is-open");
+      });
+      dom.searchResults.appendChild(item);
+    });
+    dom.searchResults.classList.add("is-open");
+  }
+
+  async function exportToPng() {
+    if (!dom.treeArea || !window.html2canvas) return;
+    const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "family-tree.png";
+    link.click();
+  }
+
+  async function exportToPdf() {
+    if (!dom.treeArea || !window.html2canvas || !window.jspdf) return;
+    const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [canvas.width, canvas.height] });
+    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
+    pdf.save("family-tree.pdf");
+  }
+
+  function wireEvents() {
+    if (dom.viewFocusBtn) dom.viewFocusBtn.addEventListener("click", () => updateViewMode("focus"));
+    if (dom.viewFullBtn) dom.viewFullBtn.addEventListener("click", () => updateViewMode("full"));
+    if (dom.centerBtn) dom.centerBtn.addEventListener("click", () => {
+      if (state.selectedId) renderFocusView();
+    });
+    if (dom.resetBtn) dom.resetBtn.addEventListener("click", () => {
+      state.focusAncDepth = 1;
+      state.focusDescDepth = 1;
+      state.focusShowAllChildren = false;
+      state.expandedIds.clear();
+      state.branchOnly = false;
+      if (dom.branchOnlyBtn) dom.branchOnlyBtn.classList.remove("is-active");
+      updateViewMode("focus");
+    });
+    if (dom.insightsBtn) dom.insightsBtn.addEventListener("click", () => {
+      if (!dom.insightsPanel) return;
+      dom.insightsPanel.classList.toggle("is-open");
+    });
+    if (dom.exportPngBtn) dom.exportPngBtn.addEventListener("click", exportToPng);
+    if (dom.exportPdfBtn) dom.exportPdfBtn.addEventListener("click", exportToPdf);
+
+    if (dom.branchOnlyBtn) dom.branchOnlyBtn.addEventListener("click", () => {
+      state.branchOnly = !state.branchOnly;
+      dom.branchOnlyBtn.classList.toggle("is-active", state.branchOnly);
+      renderFullTree();
+    });
+
+    if (dom.expandAllBtn) dom.expandAllBtn.addEventListener("click", () => {
+      state.data.people.forEach((p) => state.expandedIds.add(p.id));
+      renderFullTree();
+    });
+
+    if (dom.collapseAllBtn) dom.collapseAllBtn.addEventListener("click", () => {
+      state.expandedIds.clear();
+      renderFullTree();
+    });
+
+    if (dom.fullGenSelect) {
+      dom.fullGenSelect.addEventListener("change", (e) => {
+        state.genLimit = Number(e.target.value) || 3;
+        renderFullTree();
       });
     }
 
-    resultsEl.classList.toggle("active", true);
-    setSearchActiveIndex(state, state.activeIndex);
-    highlightMatches(results.map((p) => p.id));
-  });
-
-  inputEl.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") {
-      resultsEl.classList.remove("active");
-      resultsEl.innerHTML = "";
-      closeSearchOverlay();
-      return;
-    }
-    if (!resultsEl.classList.contains("active")) return;
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      setSearchActiveIndex(state, state.activeIndex + 1);
-    } else if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setSearchActiveIndex(state, state.activeIndex - 1);
-    } else if (event.key === "Enter") {
-      event.preventDefault();
-      const targetIndex = state.activeIndex >= 0 ? state.activeIndex : 0;
-      selectSearchResult(state, targetIndex);
-    }
-  });
-}
-
-initSearch(searchInput, searchResults);
-initSearch(searchOverlayInput, searchOverlayResults);
-
-if (searchGoBtn) {
-  searchGoBtn.addEventListener("click", () => {
-    if (lastSearchResults.length === 0) return;
-    const person = lastSearchResults[0];
-    focusPerson(person.id, true);
-  });
-}
-
-function clearHighlights() {
-  document.querySelectorAll(".highlight").forEach((el) => el.classList.remove("highlight"));
-}
-
-function highlightMatches(ids) {
-  clearHighlights();
-  ids.forEach((id) => {
-    const el = elementByPersonId.get(id);
-    if (el) el.classList.add("highlight");
-  });
-}
-
-function focusPerson(personId, open = false) {
-  moveFocusTo(personId, { open, center: true, keyboard: false });
-}
-
-if (toggleThemeBtn) {
-  toggleThemeBtn.addEventListener("change", () => {
-    const next = toggleThemeBtn.checked ? "dark" : "light";
-    app.dataset.theme = next;
-    document.body.dataset.theme = next;
-    savePrefs();
-  });
-}
-
-if (viewToggle) {
-  viewToggle.addEventListener("click", () => {
-    viewMode = viewMode === "tree" ? "timeline" : "tree";
-    applyViewMode();
-    applyLanguage();
-    updateViewSwitch();
-    savePrefs();
-    updateUrlState();
-  });
-}
-
-function bindTreeViewButton(btn, nextView) {
-  if (!btn) return;
-  const handler = () => {
-    if (nextView === "full") {
-      requestShowAll();
-      return;
-    }
-    setTreeView(nextView, { fit: false, announce: false });
-  };
-  btn.addEventListener("click", handler);
-  btn.addEventListener("touchstart", handler, { passive: true });
-}
-
-bindTreeViewButton(focusViewBtn, "focus");
-bindTreeViewButton(showAllBtn, "full");
-bindTreeViewButton(mobileFocusViewBtn, "focus");
-bindTreeViewButton(mobileShowAllBtn, "full");
-
-if (viewInfoShowAll) {
-  viewInfoShowAll.addEventListener("click", () => requestShowAll());
-}
-
-if (viewInfoFit) {
-  viewInfoFit.addEventListener("click", () => fitToScreen());
-}
-
-if (resetFocusBtn) {
-  resetFocusBtn.addEventListener("click", () => {
-    if (treeView !== "focus") return;
-    visiblePeopleIds = computeVisibleSetForFocus();
-    renderScene();
-    updateViewInfoBar();
-    flashTreeStatus(i18n[lang].resetFocus);
-  });
-}
-
-if (viewTreeBtn) {
-  viewTreeBtn.addEventListener("click", () => {
-    if (viewMode === "tree") return;
-    viewMode = "tree";
-    applyViewMode();
-    applyLanguage();
-    updateViewSwitch();
-    savePrefs();
-    updateUrlState();
-  });
-  viewTreeBtn.addEventListener("touchstart", () => {
-    if (viewMode === "tree") return;
-    viewMode = "tree";
-    applyViewMode();
-    applyLanguage();
-    updateViewSwitch();
-    savePrefs();
-    updateUrlState();
-  }, { passive: true });
-}
-
-if (viewTimelineBtn) {
-  viewTimelineBtn.addEventListener("click", () => {
-    if (viewMode === "timeline") return;
-    viewMode = "timeline";
-    applyViewMode();
-    applyLanguage();
-    updateViewSwitch();
-    savePrefs();
-    updateUrlState();
-  });
-  viewTimelineBtn.addEventListener("touchstart", () => {
-    if (viewMode === "timeline") return;
-    viewMode = "timeline";
-    applyViewMode();
-    applyLanguage();
-    updateViewSwitch();
-    savePrefs();
-    updateUrlState();
-  }, { passive: true });
-}
-
-if (timelineGenSelect) {
-  timelineGenSelect.addEventListener("change", () => {
-    timelineFilters.generation = timelineGenSelect.value || "all";
-    renderTimeline();
-    updateTimelineActiveFilters();
-  });
-}
-
-if (timelineMonthSelect) {
-  timelineMonthSelect.addEventListener("change", () => {
-    timelineFilters.month = timelineMonthSelect.value || "all";
-    renderTimeline();
-    updateTimelineActiveFilters();
-  });
-}
-
-if (timelineGenderSelect) {
-  timelineGenderSelect.addEventListener("change", () => {
-    timelineFilters.gender = timelineGenderSelect.value || "all";
-    renderTimeline();
-    updateTimelineActiveFilters();
-  });
-}
-
-if (timelineSortSelect) {
-  timelineSortSelect.addEventListener("change", () => {
-    timelineFilters.sort = timelineSortSelect.value || "year";
-    renderTimeline();
-    updateTimelineActiveFilters();
-  });
-}
-
-if (timelineMoreBtn) {
-  timelineMoreBtn.addEventListener("click", () => {
-    updateTimelineMoreState(!timelineMoreOpen);
-  });
-}
-
-if (timelineClearBtn) {
-  timelineClearBtn.addEventListener("click", () => {
-    timelineFilters = { generation: "all", month: "all", gender: "all", sort: "year" };
-    if (timelineGenSelect) timelineGenSelect.value = "all";
-    if (timelineMonthSelect) timelineMonthSelect.value = "all";
-    if (timelineGenderSelect) timelineGenderSelect.value = "all";
-    if (timelineSortSelect) timelineSortSelect.value = "year";
-    renderTimeline();
-    updateTimelineActiveFilters();
-  });
-}
-
-if (settingsBtn) {
-  settingsBtn.addEventListener("click", () => {
-    openSettingsModal();
-  });
-}
-
-if (settingsModal) {
-  settingsModal.addEventListener("click", (event) => {
-    if (!event.target.dataset.settingsClose) return;
-    closeSettingsModal();
-  });
-  closeSettingsModal();
-}
-
-if (settingsCompact) {
-  settingsCompact.addEventListener("change", () => {
-    compactMode = settingsCompact.checked;
-    document.body.classList.toggle("compact", compactMode);
-    applyLanguage();
-    savePrefs();
-  });
-}
-
-if (settingsLines) {
-  settingsLines.addEventListener("change", () => {
-    showLines = settingsLines.checked;
-    applyLinesState();
-    savePrefs();
-  });
-}
-
-if (settingsCardScale) {
-  settingsCardScale.addEventListener("input", () => {
-    cardScale = Number(settingsCardScale.value) || 1;
-    applyCardScale();
-    buildLayout();
-    updateStats();
-    populateTimelineFilters();
-    renderScene();
-    savePrefs();
-  });
-}
-
-if (settingsMinimap) {
-  settingsMinimap.addEventListener("change", () => {
-    minimapEnabled = settingsMinimap.checked;
-    applyMinimapState();
-    savePrefs();
-  });
-}
-
-if (settingsDrag) {
-  settingsDrag.addEventListener("change", () => {
-    dragToPan = settingsDrag.checked;
-    applyDragToPanState();
-    savePrefs();
-  });
-}
-
-if (settingsShowBirthdate) {
-  settingsShowBirthdate.addEventListener("change", () => {
-    showBirthdate = settingsShowBirthdate.checked;
-    applyDetailsVisibility();
-    savePrefs();
-  });
-}
-
-if (settingsShowAge) {
-  settingsShowAge.addEventListener("change", () => {
-    showAge = settingsShowAge.checked;
-    applyDetailsVisibility();
-    savePrefs();
-  });
-}
-
-if (settingsShowTags) {
-  settingsShowTags.addEventListener("change", () => {
-    showTags = settingsShowTags.checked;
-    applyDetailsVisibility();
-    savePrefs();
-  });
-}
-
-if (settingsDefaultView) {
-  settingsDefaultView.addEventListener("change", () => {
-    defaultView = settingsDefaultView.value || "tree";
-    viewMode = defaultView;
-    applyViewMode();
-    savePrefs();
-  });
-}
-
-if (settingsReset) {
-  settingsReset.addEventListener("click", () => {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      // ignore storage errors
-    }
-    window.location.reload();
-  });
-}
-
-if (settingsClearData) {
-  settingsClearData.addEventListener("click", () => {
-    clearSiteCache();
-  });
-}
-
-if (exportPngBtn) {
-  exportPngBtn.addEventListener("click", async () => {
-    if (!window.html2canvas) {
-      alert(i18n[lang].exportPngFail);
-      return;
-    }
-    if (!treeZoom) return;
-    const exportScale = Math.min(3, (window.devicePixelRatio || 1) * 1.5);
-    const canvas = await window.html2canvas(treeZoom, { backgroundColor: null, scale: exportScale });
-    const link = document.createElement("a");
-    link.download = "salasilah-keluarga.jpg";
-    link.href = canvas.toDataURL("image/jpeg", 0.92);
-    link.click();
-  });
-}
-
-if (exportPdfBtn) {
-  exportPdfBtn.addEventListener("click", async () => {
-    if (!window.html2canvas || !window.jspdf) {
-      alert(i18n[lang].exportPdfFail);
-      return;
-    }
-    if (!treeZoom) return;
-
-    const exportScale = Math.min(3, (window.devicePixelRatio || 1) * 1.5);
-    const canvas = await window.html2canvas(treeZoom, { backgroundColor: null, scale: exportScale });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [canvas.width, canvas.height] });
-
-    const title = treeData.familyName || i18n[lang].appKicker;
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(28);
-    pdf.text(title, 40, 60);
-    pdf.setFontSize(12);
-    pdf.setFont("helvetica", "normal");
-    const dateLabel = formatText(i18n[lang].exportDate, { date: formatDateDisplay(new Date()) });
-    pdf.text(dateLabel, 40, 90);
-    pdf.addPage([canvas.width, canvas.height], "landscape");
-    pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
-    pdf.save("salasilah-keluarga.pdf");
-  });
-}
-
-function closeExportMenu() {
-  if (!exportMenu) return;
-  exportMenu.hidden = true;
-  if (exportMenuBtn) exportMenuBtn.setAttribute("aria-expanded", "false");
-}
-
-function positionExportMenu() {
-  if (!exportMenu || !exportMenuBtn) return;
-  exportMenu.style.left = "calc(100% + 8px)";
-  exportMenu.style.right = "auto";
-  exportMenu.style.top = "50%";
-  exportMenu.style.transform = "translateY(-50%)";
-  const rect = exportMenu.getBoundingClientRect();
-  const vw = window.innerWidth;
-  if (rect.right > vw - 8) {
-    exportMenu.style.left = "auto";
-    exportMenu.style.right = "calc(100% + 8px)";
-    exportMenu.style.top = "50%";
-    exportMenu.style.transform = "translateY(-50%)";
-  }
-  const updated = exportMenu.getBoundingClientRect();
-  if (updated.left < 8 || updated.right > vw - 8) {
-    exportMenu.style.left = "auto";
-    exportMenu.style.right = "0";
-    exportMenu.style.top = "calc(100% + 8px)";
-    exportMenu.style.transform = "none";
-  }
-}
-
-if (exportMenuBtn) {
-  exportMenuBtn.addEventListener("click", (event) => {
-    event.stopPropagation();
-    if (!exportMenu) return;
-    const willOpen = exportMenu.hidden;
-    exportMenu.hidden = !willOpen;
-    exportMenuBtn.setAttribute("aria-expanded", willOpen ? "true" : "false");
-    if (willOpen) {
-      requestAnimationFrame(positionExportMenu);
-    }
-  });
-}
-
-if (exportMenu) {
-  document.addEventListener("click", (event) => {
-    if (exportMenu.hidden) return;
-    if (exportMenu.contains(event.target) || exportMenuBtn?.contains(event.target)) return;
-    closeExportMenu();
-  });
-}
-
-if (exportPngBtn) {
-  exportPngBtn.addEventListener("click", () => {
-    closeExportMenu();
-  });
-}
-
-if (exportPdfBtn) {
-  exportPdfBtn.addEventListener("click", () => {
-    closeExportMenu();
-  });
-}
-
-function updateMiniToolbarVisibility() {
-  if (!miniToolbar) return;
-  if (viewMode !== "tree") {
-    miniToolbar.classList.remove("is-visible");
-    return;
-  }
-  const controlsPanel = document.querySelector(".controls");
-  if (!controlsPanel) return;
-  const rect = controlsPanel.getBoundingClientRect();
-  const shouldShow = rect.bottom < 0;
-  miniToolbar.classList.toggle("is-visible", shouldShow);
-}
-
-if (miniSearchBtn) {
-  miniSearchBtn.addEventListener("click", () => {
-    if (searchInput) searchInput.focus();
-  });
-}
-
-if (miniZoomInBtn) {
-  miniZoomInBtn.addEventListener("click", () => {
-    if (zoomInBtn) zoomInBtn.click();
-  });
-}
-
-if (miniZoomOutBtn) {
-  miniZoomOutBtn.addEventListener("click", () => {
-    if (zoomOutBtn) zoomOutBtn.click();
-  });
-}
-
-if (miniZoomFitBtn) {
-  miniZoomFitBtn.addEventListener("click", () => {
-    if (zoomFitBtn) zoomFitBtn.click();
-  });
-}
-
-window.addEventListener("scroll", () => {
-  updateMiniToolbarVisibility();
-}, { passive: true });
-
-window.addEventListener("resize", () => {
-  updateMiniToolbarVisibility();
-});
-
-document.addEventListener("keydown", (event) => {
-  if (event.key !== "Escape") return;
-  if (fatalError && fatalError.classList.contains("is-open")) {
-    closeFatalError();
-    return;
-  }
-  if (searchOverlay && searchOverlay.classList.contains("is-open")) {
-    closeSearchOverlay();
-    return;
-  }
-  if (showAllModal && showAllModal.classList.contains("is-open")) {
-    closeShowAllConfirm();
-    return;
-  }
-  if (tipOverlay && tipOverlay.classList.contains("is-open")) {
-    closeTipOverlay();
-    return;
-  }
-  if (settingsModal && settingsModal.classList.contains("is-open")) {
-    settingsModal.classList.remove("is-open");
-    settingsModal.setAttribute("aria-hidden", "true");
-    return;
-  }
-  if (storyPanel && !storyPanel.hidden) {
-    closeStoryPanel();
-  }
-});
-
-document.addEventListener("keydown", (event) => {
-  const active = document.activeElement;
-  if (!active || !active.classList.contains("person-card")) return;
-  const personId = active.dataset.personId;
-  if (!personId) return;
-
-  if (event.key === "Enter") {
-    event.preventDefault();
-    moveFocusTo(personId, { open: true, center: false, keyboard: true });
-    return;
-  }
-
-  if (event.key === "ArrowUp") {
-    event.preventDefault();
-    const parents = sortIdsByX(getParentsOf(personId));
-    if (parents[0]) moveFocusTo(parents[0], { keyboard: true });
-    return;
-  }
-
-  if (event.key === "ArrowDown") {
-    event.preventDefault();
-    const children = sortIdsByX(getChildrenOf(personId));
-    if (children[0]) moveFocusTo(children[0], { keyboard: true });
-    return;
-  }
-
-  if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-    event.preventDefault();
-    const spouses = getSpousesOf(personId);
-    if (spouses.length > 0) {
-      moveFocusTo(spouses[0], { keyboard: true });
-      return;
-    }
-    const siblings = getSiblingsOf(personId);
-    const ordered = sortIdsByX([personId, ...siblings]);
-    const idx = ordered.indexOf(personId);
-    if (event.key === "ArrowLeft" && idx > 0) {
-      moveFocusTo(ordered[idx - 1], { keyboard: true });
-    } else if (event.key === "ArrowRight" && idx < ordered.length - 1) {
-      moveFocusTo(ordered[idx + 1], { keyboard: true });
-    }
-  }
-});
-
-window.addEventListener("load", () => {
-  if (treeData) {
-    renderScene();
-    applyZoom();
-  }
-  updateMiniToolbarVisibility();
-});
-
-function updateMinimap() {
-  if (!minimapEnabled) return;
-  if (!minimapCanvas || !layoutRoot || !treeWrap) return;
-  const rect = minimapCanvas.getBoundingClientRect();
-  const width = Math.max(1, Math.floor(rect.width));
-  const height = Math.max(1, Math.floor(rect.height));
-  const dpr = window.devicePixelRatio || 1;
-  minimapCanvas.width = width * dpr;
-  minimapCanvas.height = height * dpr;
-  const ctx = minimapCanvas.getContext("2d");
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx.clearRect(0, 0, width, height);
-
-  const scaleX = width / baseSize.width;
-  const scaleY = height / baseSize.height;
-  const miniScale = Math.min(scaleX, scaleY);
-
-  ctx.save();
-  ctx.scale(miniScale, miniScale);
-  nodesList.forEach((node) => {
-    if (!nodeVisible(node)) return;
-    const w = node.ownWidth || layoutConfig.cardWidth;
-    const h = 80;
-    ctx.fillStyle = branchPalette[node.branchId] + "55";
-    ctx.fillRect(node.x, node.y, w, h);
-  });
-
-  const viewW = treeWrap.clientWidth / scale;
-  const viewH = treeWrap.clientHeight / scale;
-  const viewX = treeWrap.scrollLeft / scale;
-  const viewY = treeWrap.scrollTop / scale;
-  ctx.strokeStyle = "rgba(255,255,255,0.85)";
-  ctx.lineWidth = 2 / miniScale;
-  ctx.strokeRect(viewX, viewY, viewW, viewH);
-  ctx.restore();
-}
-
-function fitToScreen() {
-  if (!treeWrap || !treeCanvas) return;
-  if (!treeCanvas.children.length || baseSize.width <= 0 || baseSize.height <= 0) return;
-  const pad = 24;
-  const targetScale = Math.min(
-    (treeWrap.clientWidth - pad) / baseSize.width,
-    (treeWrap.clientHeight - pad) / baseSize.height
-  );
-  if (!Number.isFinite(targetScale) || targetScale <= 0) return;
-  scale = Math.max(0.6, Math.min(2.2, targetScale));
-  applyZoom();
-  treeWrap.scrollTo({ left: 0, top: 0, behavior: "smooth" });
-  scheduleRender();
-}
-
-function findElderPerson() {
-  const elderByRelation = treeData.people.find((p) => {
-    const relation = (p.relation || "").toLowerCase();
-    return relation.includes("tok") || relation.includes("wan");
-  });
-  if (elderByRelation) return elderByRelation;
-
-  const firstRootUnion = treeData.unions.find((u) => u.partner1 || u.partner2);
-  if (!firstRootUnion) return null;
-  return peopleById.get(firstRootUnion.partner1) || peopleById.get(firstRootUnion.partner2) || null;
-}
-
-function applyLineageHighlight() {
-  document.querySelectorAll(".person-card.path-on").forEach((el) => el.classList.remove("path-on"));
-  const startId = selectedPersonId || treeData.selfId;
-  if (!pathMode || !startId) {
-    applyLanguage();
-    return;
-  }
-  const ids = getLineageIds(startId);
-  ids.forEach((id) => {
-    const group = elementByPersonId.get(id);
-    if (!group) return;
-    group.querySelectorAll(".person-card").forEach((card) => card.classList.add("path-on"));
-  });
-  applyLanguage();
-}
-
-function getLineageIds(startId) {
-  const result = new Set([startId]);
-  let cursor = startId;
-  let guard = 0;
-  while (guard < 100) {
-    guard += 1;
-    const parentUnion = treeData.unions.find((u) => u.children.includes(cursor));
-    if (!parentUnion) break;
-    if (parentUnion.partner1) result.add(parentUnion.partner1);
-    if (parentUnion.partner2) result.add(parentUnion.partner2);
-    cursor = parentUnion.partner1 || parentUnion.partner2;
-    if (!cursor) break;
-  }
-  return result;
-}
-
-function validateTreeData(data) {
-  const errors = [];
-  if (!data || !Array.isArray(data.people) || !Array.isArray(data.unions)) {
-    return [i18n[lang].errStructure];
-  }
-  const ids = new Set();
-  data.people.forEach((person) => {
-    if (!person.id) errors.push(i18n[lang].errPersonNoId);
-    if (ids.has(person.id)) errors.push(formatText(i18n[lang].errDuplicateId, { id: person.id }));
-    ids.add(person.id);
-  });
-  if (data.selfId && !ids.has(data.selfId)) {
-    errors.push(formatText(i18n[lang].errSelfMissing, { id: data.selfId }));
-  }
-
-  const childMap = new Map();
-  data.unions.forEach((union) => {
-    if (!union.id) errors.push(i18n[lang].errUnionNoId);
-    if (union.partner1 && !ids.has(union.partner1)) {
-      errors.push(formatText(i18n[lang].errPartner1Missing, { id: union.partner1, union: union.id || "-" }));
-    }
-    if (union.partner2 && !ids.has(union.partner2)) {
-      errors.push(formatText(i18n[lang].errPartner2Missing, { id: union.partner2, union: union.id || "-" }));
-    }
-    (union.children || []).forEach((childId) => {
-      if (!ids.has(childId)) errors.push(formatText(i18n[lang].errChildMissing, { id: childId, union: union.id || "-" }));
-      if (!childMap.has(childId)) childMap.set(childId, []);
-      childMap.get(childId).push(union.id);
+    if (dom.zoomInBtn) dom.zoomInBtn.addEventListener("click", () => {
+      state.fullScale = Math.min(1.4, state.fullScale + 0.1);
+      dom.fullListInner.style.transform = `scale(${state.fullScale})`;
     });
-  });
-
-  childMap.forEach((unions, childId) => {
-    if (unions.length > 1) {
-      errors.push(formatText(i18n[lang].errChildMultiple, { id: childId, unions: unions.join(", ") }));
-    }
-  });
-  return errors;
-}
-
-function syncMobileLabels() {
-  if (mobileQuickZoomIn) mobileQuickZoomIn.textContent = zoomInBtn.textContent;
-  if (mobileQuickZoomOut) mobileQuickZoomOut.textContent = zoomOutBtn.textContent;
-  if (mobileQuickZoomFit) mobileQuickZoomFit.textContent = zoomFitBtn.textContent;
-  if (mobileActionLabel) mobileActionLabel.textContent = i18n[lang].mobileActions;
-
-  if (mobileActionSelect) {
-    const placeholder = mobileActionSelect.querySelector('option[value=""]');
-    if (placeholder) placeholder.textContent = i18n[lang].mobilePick;
-
-    const optionMap = {
-      "zoom-reset": zoomResetBtn,
-      "reset-view": resetViewBtn,
-      "toggle-theme": toggleThemeBtn,
-      "lang-toggle": langToggleBtn,
-      "export-png": exportPngBtn,
-      "export-pdf": exportPdfBtn
-    };
-
-    Object.entries(optionMap).forEach(([value, btn]) => {
-      const option = mobileActionSelect.querySelector(`option[value="${value}"]`);
-      if (option && btn) option.textContent = btn.textContent;
+    if (dom.zoomOutBtn) dom.zoomOutBtn.addEventListener("click", () => {
+      state.fullScale = Math.max(0.8, state.fullScale - 0.1);
+      dom.fullListInner.style.transform = `scale(${state.fullScale})`;
     });
-  }
-}
-
-function applyLanguage() {
-  const t = i18n[lang];
-  document.title = t.appKicker;
-  document.querySelectorAll("[data-i18n]").forEach((el) => {
-    const key = el.dataset.i18n;
-    if (key && t[key] !== undefined) el.textContent = t[key];
-  });
-  document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
-    const key = el.dataset.i18nPlaceholder;
-    if (key && t[key] !== undefined) el.setAttribute("placeholder", t[key]);
-  });
-  document.querySelectorAll("[data-i18n-title]").forEach((el) => {
-    const key = el.dataset.i18nTitle;
-    if (key && t[key] !== undefined) el.setAttribute("title", t[key]);
-  });
-  document.querySelectorAll("[data-i18n-aria]").forEach((el) => {
-    const key = el.dataset.i18nAria;
-    if (key && t[key] !== undefined) el.setAttribute("aria-label", t[key]);
-  });
-
-  if (treeCanvas) treeCanvas.dataset.emptyText = "";
-  if (searchInput) searchInput.placeholder = t.searchPlaceholder;
-  if (viewToggle) viewToggle.textContent = viewMode === "timeline" ? t.viewTree : t.viewTimeline;
-  if (focusViewBtn) focusViewBtn.textContent = t.focusView;
-  if (showAllBtn) showAllBtn.textContent = t.showAll;
-  if (mobileFocusViewBtn) mobileFocusViewBtn.textContent = t.focusView;
-  if (mobileShowAllBtn) mobileShowAllBtn.textContent = t.showAll;
-  if (quickJumpBtn) quickJumpBtn.textContent = t.quickJump;
-  if (resetFocusBtn) resetFocusBtn.textContent = t.resetFocus;
-  if (tipText) tipText.textContent = t.tipText;
-  if (tipHideLabel) tipHideLabel.textContent = t.tipHide;
-  if (tipCloseBtn) tipCloseBtn.textContent = t.tipOk;
-  if (showAllTitle) showAllTitle.textContent = t.showAllConfirm;
-  if (showAllContinueBtn) showAllContinueBtn.textContent = t.showAllContinue;
-  if (showAllStayBtn) showAllStayBtn.textContent = t.showAllStay;
-  if (searchOverlayInput) searchOverlayInput.placeholder = t.searchPlaceholder;
-  if (compactToggleBtn) compactToggleBtn.textContent = compactMode ? t.compactOn : t.compactOff;
-  if (pathToggleBtn) pathToggleBtn.textContent = pathMode ? t.pathOn : t.pathOff;
-  if (focusEldersBtn) focusEldersBtn.textContent = t.focusElders;
-  if (backTopBtn) backTopBtn.textContent = t.backTop;
-  if (zoomFitBtn) zoomFitBtn.textContent = t.fit;
-  if (zoomInBtn) zoomInBtn.textContent = t.zoomIn;
-  if (zoomOutBtn) zoomOutBtn.textContent = t.zoomOut;
-  if (zoomResetBtn) zoomResetBtn.textContent = t.zoomReset;
-  if (exportPngBtn) {
-    const label = exportPngBtn.querySelector('[data-i18n="exportPng"]');
-    if (label) label.textContent = t.exportPng;
-  }
-  if (exportPdfBtn) {
-    const label = exportPdfBtn.querySelector('[data-i18n="exportPdf"]');
-    if (label) label.textContent = t.exportPdf;
-  }
-  if (exportJsonBtn) exportJsonBtn.textContent = t.exportJson;
-  if (importJsonBtn) importJsonBtn.textContent = t.importJson;
-  if (validateDataBtn) validateDataBtn.textContent = t.validateData;
-  if (toggleThemeBtn) toggleThemeBtn.checked = app.dataset.theme === "dark";
-  if (langToggleBtn) langToggleBtn.checked = lang === "en";
-  if (controlsToggleBtn) {
-    controlsToggleBtn.textContent = controlsCollapsed ? t.controlsToggleOpen : t.controlsToggleClose;
-  }
-  if (mobilePanelBtn) {
-    mobilePanelBtn.textContent = controlsCollapsed ? t.controlsToggleOpen : t.controlsToggleClose;
-  }
-  if (settingsBtn) settingsBtn.textContent = t.settingsTitle;
-  if (themePresetSelect) themePresetSelect.value = themePreset;
-  if (settingsCardScale) settingsCardScale.value = String(cardScale);
-  if (settingsCompact) settingsCompact.checked = compactMode;
-  if (settingsLines) settingsLines.checked = showLines;
-  if (settingsMinimap) settingsMinimap.checked = minimapEnabled;
-  if (settingsDrag) settingsDrag.checked = dragToPan;
-  if (settingsShowBirthdate) settingsShowBirthdate.checked = showBirthdate;
-  if (settingsShowAge) settingsShowAge.checked = showAge;
-  if (settingsShowTags) settingsShowTags.checked = showTags;
-  if (settingsDefaultView) settingsDefaultView.value = viewMode;
-  if (timelineMonthSelect) timelineMonthSelect.value = timelineFilters.month;
-  if (timelineGenderSelect) timelineGenderSelect.value = timelineFilters.gender;
-  if (timelineSortSelect) timelineSortSelect.value = timelineFilters.sort;
-  populateTimelineFilters();
-  updateTimelineMoreState();
-  updateTimelineActiveFilters();
-  updateViewSwitch();
-
-  const branchOptions = branchFilter?.options || [];
-  if (branchOptions.length > 0) {
-    branchOptions[0].textContent = t.branchAll;
-    for (let i = 1; i < branchOptions.length; i += 1) {
-      branchOptions[i].textContent = formatText(t.branchName, { n: i });
-    }
-  }
-
-  generationControls?.querySelectorAll(".gen-chip").forEach((chip) => {
-    if (chip.dataset.reset) chip.textContent = t.genAll;
-    if (chip.dataset.openAll) chip.textContent = t.openAll;
-    if (chip.dataset.collapse) chip.textContent = t.collapseG2;
-  });
-
-  if (!selectedPersonId) {
-    if (storyTitle) storyTitle.textContent = t.storyTitle;
-    if (storyBody) storyBody.textContent = t.storyEmpty;
-  }
-
-  if (modal?.classList.contains("active") && selectedPersonId) {
-    modal.classList.remove("active");
-    modal.setAttribute("aria-hidden", "true");
-  }
-
-  syncMobileLabels();
-  const { minimapHandle, minimapHint } = getMinimapEls();
-  if (minimapHandle) minimapHandle.textContent = t.minimapShow;
-  if (minimapHint) minimapHint.textContent = t.minimapHint;
-  if (typeof updateViewInfoBar === "function") updateViewInfoBar();
-  if (typeof updateTreeViewButtons === "function") updateTreeViewButtons();
-}
-
-function minimapScrollTo(clientX, clientY) {
-  if (!minimapCanvas || !treeWrap) return;
-  const rect = minimapCanvas.getBoundingClientRect();
-  const x = clientX - rect.left;
-  const y = clientY - rect.top;
-  const scaleX = rect.width / baseSize.width;
-  const scaleY = rect.height / baseSize.height;
-  const miniScale = Math.min(scaleX, scaleY);
-  const targetX = x / miniScale - treeWrap.clientWidth / (2 * scale);
-  const targetY = y / miniScale - treeWrap.clientHeight / (2 * scale);
-  treeWrap.scrollTo({ left: Math.max(0, targetX * scale), top: Math.max(0, targetY * scale) });
-}
-
-function setupMinimap() {
-  if (minimapInitialized) return;
-  const { minimap, minimapHandle, minimapWrap, minimapCanvas: minimapCanvasEl } = getMinimapEls();
-  const minimapCloseBtn = document.getElementById("minimap-close-btn");
-  if (!minimap) return;
-  minimapInitialized = true;
-  if (minimapCanvasEl) {
-    minimapCanvasEl.addEventListener("click", (event) => {
-      minimapScrollTo(event.clientX, event.clientY);
+    if (dom.zoomResetBtn) dom.zoomResetBtn.addEventListener("click", () => {
+      state.fullScale = 1;
+      dom.fullListInner.style.transform = "scale(1)";
     });
-  }
 
-  const isMobileView = () => window.matchMedia("(max-width: 720px)").matches;
-  const activate = () => {
-    minimap.classList.add("is-active");
-  };
-  const deactivate = () => {
-    minimap.classList.remove("is-active");
-  };
-  let dragging = false;
-  let hovering = false;
-  let hideTimer = null;
+    if (dom.fullList) {
+      dom.fullList.addEventListener("scroll", () => {
+        renderFullTree();
+      });
+    }
 
-  const scheduleHide = () => {
-    if (isMobileView()) return;
-    if (!minimapWrap) return;
-    if (hideTimer) clearTimeout(hideTimer);
-    hideTimer = setTimeout(() => {
-      if (!dragging && !hovering) {
-        minimapWrap.classList.add("is-collapsed");
+    if (dom.searchInput) {
+      dom.searchInput.addEventListener("input", (e) => {
+        const q = e.target.value.trim();
+        if (!q) return renderSearchResults([], "");
+        const matches = state.data.people.filter((p) => formatName(p).toLowerCase().includes(q.toLowerCase()));
+        renderSearchResults(matches, q);
+      });
+    }
+
+    if (dom.drawerClose) dom.drawerClose.addEventListener("click", closeDrawer);
+
+    if (dom.fatalReload) dom.fatalReload.addEventListener("click", () => window.location.reload());
+    if (dom.fatalClose) dom.fatalClose.addEventListener("click", closeFatalError);
+    if (dom.fatalError) {
+      dom.fatalError.addEventListener("click", (e) => {
+        if (e.target === dom.fatalError) closeFatalError();
+      });
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "/") {
+        e.preventDefault();
+        dom.searchInput?.focus();
       }
-    }, 2500);
-  };
-
-  const openMinimapMobile = () => {
-    if (!minimapWrap) return;
-    minimapWrap.classList.add("is-open");
-    minimapWrap.classList.remove("is-collapsed");
-  };
-
-  const closeMinimapMobile = () => {
-    if (!minimapWrap) return;
-    minimapWrap.classList.remove("is-open");
-    minimapWrap.classList.add("is-collapsed");
-  };
-
-  const toggleMinimapMobile = () => {
-    if (!minimapWrap) return;
-    if (minimapWrap.classList.contains("is-open")) {
-      closeMinimapMobile();
-    } else {
-      openMinimapMobile();
-    }
-  };
-
-  const showMinimap = () => {
-    if (!minimapWrap) return;
-    if (isMobileView()) {
-      toggleMinimapMobile();
-      return;
-    }
-    minimapWrap.classList.remove("is-collapsed");
-    scheduleHide();
-  };
-
-  if (minimapWrap) {
-    minimapWrap.classList.add("is-collapsed");
-    minimapWrap.addEventListener("mouseenter", () => {
-      hovering = true;
-      showMinimap();
-    });
-    minimapWrap.addEventListener("mouseleave", () => {
-      hovering = false;
-      scheduleHide();
-    });
-    minimapWrap.addEventListener("focusin", () => {
-      hovering = true;
-      showMinimap();
-    });
-    minimapWrap.addEventListener("focusout", () => {
-      hovering = false;
-      scheduleHide();
-    });
-    minimapWrap.addEventListener("touchstart", showMinimap, { passive: true });
-    if (isMobileView()) {
-      minimapWrap.classList.remove("is-open");
-    }
-    setTimeout(() => minimapWrap.classList.add("is-collapsed"), 50);
-  }
-
-  if (minimapHandle) {
-    minimapHandle.addEventListener("click", showMinimap);
-    minimapHandle.addEventListener("touchstart", showMinimap, { passive: true });
-  }
-
-  if (minimapCloseBtn) {
-    minimapCloseBtn.addEventListener("click", () => {
-      if (isMobileView()) closeMinimapMobile();
+      if (e.key === "Escape") {
+        closeDrawer();
+        closeFatalError();
+      }
+      if (e.key.toLowerCase() === "c") {
+        if (state.selectedId) renderFocusView();
+      }
     });
   }
 
-  minimap.addEventListener("pointerdown", (event) => {
-    if (!minimapCanvasEl) return;
-    dragging = true;
-    minimap.setPointerCapture(event.pointerId);
-    activate();
-    minimapScrollTo(event.clientX, event.clientY);
-    showMinimap();
-    event.preventDefault();
-  });
-
-  minimap.addEventListener("pointermove", (event) => {
-    if (!dragging) return;
-    minimapScrollTo(event.clientX, event.clientY);
-    showMinimap();
-    event.preventDefault();
-  });
-
-  const endDrag = (event) => {
-    dragging = false;
-    deactivate();
-    if (event && minimap.hasPointerCapture(event.pointerId)) {
-      minimap.releasePointerCapture(event.pointerId);
+  async function initApp() {
+    try {
+      console.info("[INIT]", APP_VERSION);
+      const data = await fetchDataJson(getDataUrlCandidates());
+      validateData(data);
+      state.data = data;
+      buildIndex(data);
+      updateStats();
+      state.selectedId = data.selfId || data.people?.[0]?.id || "";
+      highlightPath(state.selectedId, { dim: false });
+      updateViewMode("focus");
+      renderFocusView();
+      renderFullTree();
+      setStatus("");
+      wireEvents();
+      log("ready", data.people.length);
+    } catch (err) {
+      setStatus(String(err), true);
+      showFatalError(err);
     }
-  };
-
-  minimap.addEventListener("pointerup", endDrag);
-  minimap.addEventListener("pointercancel", endDrag);
-  minimap.addEventListener("mouseleave", () => {
-    if (dragging) endDrag();
-  });
-  minimap.addEventListener("mouseup", deactivate);
-
-  scheduleHide();
-  window.addEventListener("scroll", scheduleHide, true);
-  window.addEventListener("touchend", scheduleHide, { passive: true });
-  window.addEventListener("resize", () => {
-    if (isMobileView()) {
-      closeMinimapMobile();
-    } else if (minimapWrap) {
-      minimapWrap.classList.remove("is-open");
-      scheduleHide();
-    }
-  });
-}
-
-function restoreFromUrl() {
-  if (!GENERATION_FILTER_ENABLED) return;
-  const params = new URLSearchParams(window.location.search);
-  const focusId = params.get("focus");
-  const genParam = params.get("gen");
-  if (genParam) {
-    params.delete("gen");
-    history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
   }
 
-  if (focusId && peopleById.has(focusId)) {
-    setTimeout(() => {
-      focusPerson(focusId, true);
-    }, 200);
-  }
-}
-
-function updateUrlState() {
-  const params = new URLSearchParams(window.location.search);
-  if (selectedPersonId) params.set("focus", selectedPersonId);
-
-  const visible = [];
-  for (let depth = 1; depth <= maxDepth; depth += 1) {
-    if (!hiddenGenerations.has(depth)) visible.push(depth);
-  }
-  if (visible.length !== maxDepth) {
-    params.set("gen", visible.join(","));
-  } else {
-    params.delete("gen");
-  }
-
-  history.replaceState({}, "", `${window.location.pathname}?${params.toString()}`);
-}
-
-
-
-
-
-
-
+  document.addEventListener("DOMContentLoaded", initApp);
+})();
