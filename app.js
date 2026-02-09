@@ -151,7 +151,9 @@ function getMinimapEls() {
     minimap: document.getElementById("minimap"),
     minimapViewport: document.getElementById("minimap-viewport"),
     minimapHandle: document.getElementById("minimap-handle"),
-    minimapHint: document.getElementById("minimap-hint")
+    minimapHint: document.getElementById("minimap-hint"),
+    minimapWrap: document.querySelector(".brand-minimap-wrap"),
+    minimapCanvas: document.getElementById("minimap-canvas")
   };
 }
 
@@ -216,6 +218,7 @@ let showLines = true;
 let cardScale = 1;
 let minimapEnabled = true;
 let dragToPan = true;
+let minimapInitialized = false;
 let defaultView = "tree";
 let showBirthdate = true;
 let showAge = true;
@@ -1207,6 +1210,7 @@ function initApp() {
   applyMinimapState();
   applyDragToPanState();
   applyLanguage();
+  setupMinimap();
   updateViewSwitch();
   updateTimelineMoreState(false);
 
@@ -4490,16 +4494,18 @@ function minimapScrollTo(clientX, clientY) {
   treeWrap.scrollTo({ left: Math.max(0, targetX * scale), top: Math.max(0, targetY * scale) });
 }
 
-if (minimapCanvas) {
-  minimapCanvas.addEventListener("click", (event) => {
-    minimapScrollTo(event.clientX, event.clientY);
-  });
-}
+function setupMinimap() {
+  if (minimapInitialized) return;
+  const { minimap, minimapHandle, minimapWrap, minimapCanvas: minimapCanvasEl } = getMinimapEls();
+  const minimapCloseBtn = document.getElementById("minimap-close-btn");
+  if (!minimap) return;
+  minimapInitialized = true;
+  if (minimapCanvasEl) {
+    minimapCanvasEl.addEventListener("click", (event) => {
+      minimapScrollTo(event.clientX, event.clientY);
+    });
+  }
 
-const minimapWrap = document.querySelector(".brand-minimap-wrap");
-const minimapCloseBtn = document.getElementById("minimap-close-btn");
-const { minimap, minimapHandle } = getMinimapEls();
-if (minimap) {
   const isMobileView = () => window.matchMedia("(max-width: 720px)").matches;
   const activate = () => {
     minimap.classList.add("is-active");
@@ -4590,7 +4596,7 @@ if (minimap) {
   }
 
   minimap.addEventListener("pointerdown", (event) => {
-    if (!minimapCanvas) return;
+    if (!minimapCanvasEl) return;
     dragging = true;
     minimap.setPointerCapture(event.pointerId);
     activate();
