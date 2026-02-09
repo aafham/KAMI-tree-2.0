@@ -2,7 +2,7 @@
 (() => {
   "use strict";
 
-  const APP_VERSION = "2026-02-10.4";
+  const APP_VERSION = "2026-02-10.5";
 
   const dom = {
     app: document.getElementById("app"),
@@ -71,7 +71,6 @@
     listRowHeight: 56,
     listOverscan: 8,
     fullScale: 1,
-    dimUntil: 0,
     pathHighlight: new Set()
   };
 
@@ -188,7 +187,7 @@
   function setSelected(id, options = {}) {
     if (!id || !state.peopleById.has(id)) return;
     state.selectedId = id;
-    highlightPath(id, { dim: options.fromSearch });
+    highlightPath(id, { dim: options.fromSearch ? false : false });
     renderFocusView();
     renderFullTree();
     openDrawer(id);
@@ -196,6 +195,12 @@
 
   function formatName(person) {
     return person?.name || "(Tanpa nama)";
+  }
+
+  function formatGender(person) {
+    if (person.gender === "male") return "male";
+    if (person.gender === "female") return "female";
+    return "unknown";
   }
 
   function getParents(id) {
@@ -269,13 +274,15 @@
 
   function updateBreadcrumbs() {
     if (!dom.breadcrumbs || !state.pathHighlight.size) return;
-    const labels = Array.from(state.pathHighlight).map((pid) => formatName(state.peopleById.get(pid)));
+    const labels = Array.from(state.pathHighlight).map((pid, idx) => {
+      const label = formatName(state.peopleById.get(pid));
+      return `${idx + 1}. ${label}`;
+    });
     dom.breadcrumbs.textContent = labels.join(" > ");
   }
 
   function highlightPath(id, { dim = false } = {}) {
     state.pathHighlight = new Set(getBreadcrumbPath(id));
-    if (dim) state.dimUntil = Date.now() + 1200;
     updateBreadcrumbs();
   }
 
@@ -284,6 +291,7 @@
     card.className = `person-card${compact ? " compact" : ""}${highlight ? " is-selected" : ""}`;
     card.type = "button";
     card.dataset.personId = person.id;
+    card.dataset.gender = formatGender(person);
     card.innerHTML = `
       <span class="person-name">${formatName(person)}</span>
       <span class="person-meta">${person.gender === "female" ? "?" : person.gender === "male" ? "?" : "•"} ${person.birth ? String(person.birth).slice(0,4) : ""}${person.death ? `–${String(person.death).slice(0,4)}` : ""}</span>
@@ -476,9 +484,6 @@
     dom.fullBottomSpacer.style.height = `${(total - endIndex) * state.listRowHeight}px`;
     dom.fullListInner.innerHTML = "";
 
-    const now = Date.now();
-    const dimActive = now < state.dimUntil;
-
     slice.forEach((item) => {
       const person = state.peopleById.get(item.id);
       if (!person) return;
@@ -487,7 +492,7 @@
       row.style.paddingLeft = `${(item.depth - 1) * 24}px`;
       row.dataset.personId = item.id;
       if (state.pathHighlight.has(item.id)) row.classList.add("is-path");
-      if (dimActive && !state.pathHighlight.has(item.id)) row.classList.add("is-dimmed");
+      if (!state.pathHighlight.has(item.id) && state.pathHighlight.size) row.classList.add("is-dimmed");
 
       const toggle = document.createElement("button");
       toggle.className = "full-toggle";
@@ -624,7 +629,8 @@
 
   async function exportToPng() {
     if (!dom.treeArea || !window.html2canvas) return;
-    const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
+    const target = dom.fullView && !dom.fullView.hidden ? dom.fullView : dom.treeArea;
+    const canvas = await window.html2canvas(target, { backgroundColor: "#f6f5f0", scale: 2 });
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
     link.download = "family-tree.png";
@@ -633,7 +639,8 @@
 
   async function exportToPdf() {
     if (!dom.treeArea || !window.html2canvas || !window.jspdf) return;
-    const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
+    const target = dom.fullView && !dom.fullView.hidden ? dom.fullView : dom.treeArea;
+    const canvas = await window.html2canvas(target, { backgroundColor: "#f6f5f0", scale: 2 });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [canvas.width, canvas.height] });
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
