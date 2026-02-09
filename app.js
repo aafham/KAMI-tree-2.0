@@ -3621,8 +3621,6 @@ if (viewToggle) {
   });
 }
 
-if (viewTreeBtn)
-
 function bindTreeViewButton(btn, nextView) {
   if (!btn) return;
   const handler = () => {
