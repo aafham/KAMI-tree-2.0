@@ -27,7 +27,7 @@
             <canvas id="minimap-canvas"></canvas>
           </div>
           <button class="minimap-close" id="minimap-close-btn" type="button" aria-label="Tutup minimap">×</button>
-          <p class="minimap-hint" data-i18n="minimapHint">Klik pada kotak kecil untuk lompat lokasi. Kotak putih menunjukkan kawasan semasa.</p>
+          <p class="minimap-hint" id="minimap-hint" data-i18n="minimapHint">Klik pada kotak kecil untuk lompat lokasi. Kotak putih menunjukkan kawasan semasa.</p>
           <button class="minimap-handle" id="minimap-handle" type="button" data-i18n="minimapShow">Buka Minimap</button>
         </div>
       </div>
@@ -319,6 +319,7 @@
   <div id="fatalError" class="fatal-error" aria-live="polite" hidden>
     <div class="fatal-card" role="alertdialog" aria-modal="true" aria-labelledby="fatal-title">
       <h3 id="fatal-title">Ralat</h3>
+      <button id="fatalClose" class="fatal-close" aria-label="Tutup" type="button">×</button>
       <pre class="msg"></pre>
       <button id="fatalReload" class="btn" type="button">Reload</button>
     </div>

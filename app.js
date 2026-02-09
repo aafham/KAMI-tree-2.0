@@ -139,10 +139,20 @@ const searchOverlayClose = document.getElementById("search-overlay-close");
 const debugOverlay = document.getElementById("debug-overlay");
 const fatalError = document.getElementById("fatalError");
 const fatalReload = document.getElementById("fatalReload");
+const fatalClose = document.getElementById("fatalClose");
 
 function on(el, event, handler, options) {
   if (!el) return;
   el.addEventListener(event, handler, options);
+}
+
+function getMinimapEls() {
+  return {
+    minimap: document.getElementById("minimap"),
+    minimapViewport: document.getElementById("minimap-viewport"),
+    minimapHandle: document.getElementById("minimap-handle"),
+    minimapHint: document.getElementById("minimap-hint")
+  };
 }
 
 const layoutConfig = {
@@ -611,12 +621,20 @@ function showFatalError(err) {
     const msg = fatalError.querySelector(".msg");
     if (msg) msg.textContent = lastDataError;
     fatalError.hidden = false;
-    fatalError.classList.add("show");
+    fatalError.classList.add("is-open");
+    fatalError.setAttribute("aria-hidden", "false");
   }
   if (treeCanvas) {
     treeCanvas.textContent = i18n[lang]?.loadFail || "Error";
   }
   setTreeStatus(i18n[lang]?.loadFail || "Error", true);
+}
+
+function closeFatalError() {
+  if (!fatalError) return;
+  fatalError.classList.remove("is-open");
+  fatalError.setAttribute("aria-hidden", "true");
+  fatalError.hidden = true;
 }
 
 async function clearSiteCache() {
@@ -1273,6 +1291,16 @@ async function loadData(dataUrl, stored, t) {
 
 if (fatalReload) {
   fatalReload.addEventListener("click", () => window.location.reload());
+}
+
+if (fatalClose) {
+  fatalClose.addEventListener("click", closeFatalError);
+}
+
+if (fatalError) {
+  fatalError.addEventListener("click", (event) => {
+    if (event.target === fatalError) closeFatalError();
+  });
 }
 
 window.addEventListener("error", (event) => {
@@ -4096,6 +4124,10 @@ window.addEventListener("resize", () => {
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
+  if (fatalError && fatalError.classList.contains("is-open")) {
+    closeFatalError();
+    return;
+  }
   if (searchOverlay && searchOverlay.classList.contains("is-open")) {
     closeSearchOverlay();
     return;
@@ -4438,7 +4470,9 @@ function applyLanguage() {
   }
 
   syncMobileLabels();
+  const { minimapHandle, minimapHint } = getMinimapEls();
   if (minimapHandle) minimapHandle.textContent = t.minimapShow;
+  if (minimapHint) minimapHint.textContent = t.minimapHint;
   updateViewInfoBar();
   updateTreeViewButtons();
 }
@@ -4462,10 +4496,9 @@ if (minimapCanvas) {
   });
 }
 
-const minimap = document.getElementById("minimap");
 const minimapWrap = document.querySelector(".brand-minimap-wrap");
-const minimapHandle = document.getElementById("minimap-handle");
 const minimapCloseBtn = document.getElementById("minimap-close-btn");
+const { minimap, minimapHandle } = getMinimapEls();
 if (minimap) {
   const isMobileView = () => window.matchMedia("(max-width: 720px)").matches;
   const activate = () => {

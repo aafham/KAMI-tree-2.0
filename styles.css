@@ -1167,7 +1167,7 @@ body.controls-collapsed .quick-jump {
   padding: 16px;
 }
 
-.fatal-error.show {
+.fatal-error.is-open {
   display: flex;
 }
 
@@ -1180,8 +1180,19 @@ body.controls-collapsed .quick-jump {
   width: min(94vw, 620px);
   box-shadow: var(--shadow-strong);
   border: 1px solid rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
+.fatal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 20px;
+  cursor: pointer;
+}
 .fatal-card .msg {
   font-size: 12px;
   white-space: pre-wrap;
