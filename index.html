@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260210-4" />
+  <link rel="stylesheet" href="styles.css?v=20260210-5" />
 </head>
 <body>
   <div class="app" id="app" data-theme="light">
@@ -16,23 +16,36 @@
       <div class="toolbar-left">
         <div class="brand-mini">
           <span class="brand-kicker">Salasilah Keluarga</span>
-          <strong class="brand-title">Family Generation View</strong>
+          <strong class="brand-title">KAMI Tree</strong>
         </div>
         <div class="search-box">
           <input id="search-input" type="search" placeholder="Cari nama ahli keluarga..." aria-label="Cari nama" />
           <div id="search-results" class="search-results" aria-live="polite"></div>
+          <div class="kbd-hint">/ untuk cari</div>
         </div>
       </div>
       <div class="toolbar-right">
-        <div class="segmented">
+        <div class="segmented" role="group" aria-label="View toggle">
           <button id="view-focus" class="btn small is-active" type="button">Focus</button>
           <button id="view-full" class="btn small ghost" type="button">Full Tree</button>
         </div>
-        <button id="center-selected" class="btn ghost small" type="button">Center</button>
-        <button id="reset-view" class="btn ghost small" type="button">Reset</button>
-        <button id="export-png" class="btn ghost small" type="button">Export PNG</button>
-        <button id="export-pdf" class="btn ghost small" type="button">Export PDF</button>
         <button id="toggle-insights" class="btn ghost small" type="button">Insights</button>
+        <div class="menu">
+          <button id="view-menu" class="btn ghost small" type="button" aria-haspopup="true" aria-expanded="false">View ?</button>
+          <div id="view-menu-list" class="menu-list" hidden>
+            <button id="center-selected" class="menu-item" type="button">Center</button>
+            <button id="reset-view" class="menu-item" type="button">Reset</button>
+            <button id="zoom-reset" class="menu-item" type="button">Reset Zoom</button>
+          </div>
+        </div>
+        <div class="menu">
+          <button id="export-menu" class="btn ghost small" type="button" aria-haspopup="true" aria-expanded="false">Export ?</button>
+          <div id="export-menu-list" class="menu-list" hidden>
+            <button id="export-png" class="menu-item" type="button">Export PNG</button>
+            <button id="export-pdf" class="menu-item" type="button">Export PDF</button>
+          </div>
+        </div>
+        <button id="mobile-actions" class="btn ghost small mobile-only" type="button" aria-label="Menu">?</button>
       </div>
     </header>
 
@@ -58,7 +71,6 @@
             <div class="full-zoom">
               <button id="zoom-in" class="btn ghost small" type="button">+</button>
               <button id="zoom-out" class="btn ghost small" type="button">-</button>
-              <button id="zoom-reset" class="btn ghost small" type="button">Reset Zoom</button>
             </div>
           </div>
           <div id="full-tree-list" class="full-tree-list" tabindex="0">
@@ -135,12 +147,49 @@
       </div>
       <button id="drawer-close" class="btn ghost small" type="button" aria-label="Tutup">×</button>
     </div>
+    <div class="drawer-tabs">
+      <button class="chip">Parents</button>
+      <button class="chip">Spouses</button>
+      <button class="chip">Children</button>
+    </div>
     <div id="drawer-body" class="drawer-body"></div>
     <div class="drawer-actions">
       <button id="drawer-focus" class="btn ghost small" type="button">Focus View</button>
       <button id="drawer-cta" class="btn small" type="button">Open Branch</button>
     </div>
   </aside>
+
+    <div id="actionsSheet" class="actions-sheet" hidden>
+    <div class="actions-card" role="dialog" aria-modal="true">
+      <div class="actions-head">
+        <h3>Aksi</h3>
+        <button id="actions-close" class="btn ghost small" type="button">Tutup</button>
+      </div>
+      <div class="actions-grid">
+        <button id="action-focus" class="btn small" type="button">Focus View</button>
+        <button id="action-full" class="btn ghost small" type="button">Full Tree</button>
+        <button id="action-center" class="btn ghost small" type="button">Center</button>
+        <button id="action-reset" class="btn ghost small" type="button">Reset</button>
+        <button id="action-export-png" class="btn ghost small" type="button">Export PNG</button>
+        <button id="action-export-pdf" class="btn ghost small" type="button">Export PDF</button>
+        <button id="action-insights" class="btn ghost small" type="button">Insights</button>
+      </div>
+    </div>
+  </div>
+<div id="searchOverlay" class="search-overlay" hidden>
+    <div class="search-overlay-card" role="dialog" aria-modal="true">
+      <div class="search-overlay-head">
+        <h3>Carian</h3>
+        <button id="search-overlay-close" class="btn ghost small" type="button">Tutup</button>
+      </div>
+      <input id="search-overlay-input" type="search" placeholder="Cari nama ahli keluarga..." />
+      <div id="search-overlay-results" class="search-results overlay" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div id="backdrop" class="backdrop" hidden></div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
   <div id="fatalError" class="fatal-error" aria-live="polite" hidden>
     <div class="fatal-card" role="alertdialog" aria-modal="true" aria-labelledby="fatal-title">
@@ -153,6 +202,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=20260210-4" defer></script>
+  <script src="app.js?v=20260210-5" defer></script>
 </body>
 </html>
+
+

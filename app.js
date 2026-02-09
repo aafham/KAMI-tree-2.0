@@ -2,7 +2,7 @@
 (() => {
   "use strict";
 
-  const APP_VERSION = "2026-02-10.5";
+  const APP_VERSION = "2026-02-10.6";
 
   const dom = {
     app: document.getElementById("app"),
@@ -10,12 +10,30 @@
     treeArea: document.querySelector(".tree-area"),
     searchInput: document.getElementById("search-input"),
     searchResults: document.getElementById("search-results"),
+    searchOverlay: document.getElementById("searchOverlay"),
+    searchOverlayInput: document.getElementById("search-overlay-input"),
+    searchOverlayResults: document.getElementById("search-overlay-results"),
+    searchOverlayClose: document.getElementById("search-overlay-close"),
+actionsSheet: document.getElementById("actionsSheet"),
+actionsClose: document.getElementById("actions-close"),
+actionFocus: document.getElementById("action-focus"),
+actionFull: document.getElementById("action-full"),
+actionCenter: document.getElementById("action-center"),
+actionReset: document.getElementById("action-reset"),
+actionExportPng: document.getElementById("action-export-png"),
+actionExportPdf: document.getElementById("action-export-pdf"),
+actionInsights: document.getElementById("action-insights"),
     viewFocusBtn: document.getElementById("view-focus"),
     viewFullBtn: document.getElementById("view-full"),
     centerBtn: document.getElementById("center-selected"),
     resetBtn: document.getElementById("reset-view"),
+    exportMenuBtn: document.getElementById("export-menu"),
+    exportMenuList: document.getElementById("export-menu-list"),
     exportPngBtn: document.getElementById("export-png"),
     exportPdfBtn: document.getElementById("export-pdf"),
+    viewMenuBtn: document.getElementById("view-menu"),
+    viewMenuList: document.getElementById("view-menu-list"),
+    mobileActionsBtn: document.getElementById("mobile-actions"),
     insightsBtn: document.getElementById("toggle-insights"),
     focusView: document.getElementById("focus-view"),
     fullView: document.getElementById("full-view"),
@@ -47,6 +65,8 @@
     drawerCta: document.getElementById("drawer-cta"),
     drawerFocus: document.getElementById("drawer-focus"),
     status: document.getElementById("tree-status"),
+    toast: document.getElementById("toast"),
+    backdrop: document.getElementById("backdrop"),
     fatalError: document.getElementById("fatalError"),
     fatalClose: document.getElementById("fatalClose"),
     fatalReload: document.getElementById("fatalReload")
@@ -71,7 +91,8 @@
     listRowHeight: 56,
     listOverscan: 8,
     fullScale: 1,
-    pathHighlight: new Set()
+    pathHighlight: new Set(),
+    searchIndex: -1
   };
 
   const isMobile = () => window.matchMedia("(max-width: 960px)").matches;
@@ -84,6 +105,19 @@
     if (!dom.status) return;
     dom.status.textContent = message || "";
     dom.status.classList.toggle("is-error", Boolean(isError));
+  }
+
+  function showToast(message) {
+    if (!dom.toast) return;
+    dom.toast.textContent = message;
+    dom.toast.classList.add("is-show");
+    setTimeout(() => dom.toast.classList.remove("is-show"), 1600);
+  }
+
+  function showBackdrop(show) {
+    if (!dom.backdrop) return;
+    dom.backdrop.hidden = !show;
+    dom.backdrop.classList.toggle("is-open", show);
   }
 
   function showFatalError(err) {
@@ -113,9 +147,7 @@
     push("./data.json");
     try {
       push(new URL("data.json", window.location.href).toString());
-    } catch {
-      // ignore
-    }
+    } catch {}
     try {
       const path = window.location.pathname || "/";
       const parts = path.split("/").filter(Boolean);
@@ -124,9 +156,7 @@
       }
       const basePath = `${window.location.origin}${path.endsWith("/") ? path : `${path}/`}`;
       push(new URL("data.json", basePath).toString());
-    } catch {
-      // ignore
-    }
+    } catch {}
     return candidates;
   }
 
@@ -187,10 +217,11 @@
   function setSelected(id, options = {}) {
     if (!id || !state.peopleById.has(id)) return;
     state.selectedId = id;
-    highlightPath(id, { dim: options.fromSearch ? false : false });
+    highlightPath(id);
     renderFocusView();
     renderFullTree();
     openDrawer(id);
+    if (options.fromSearch) showToast("Fokus pada nama dipilih");
   }
 
   function formatName(person) {
@@ -202,7 +233,6 @@
     if (person.gender === "female") return "female";
     return "unknown";
   }
-
   function getParents(id) {
     const refs = state.parentsByChild.get(id) || [];
     const parents = [];
@@ -273,15 +303,19 @@
   }
 
   function updateBreadcrumbs() {
-    if (!dom.breadcrumbs || !state.pathHighlight.size) return;
-    const labels = Array.from(state.pathHighlight).map((pid, idx) => {
-      const label = formatName(state.peopleById.get(pid));
-      return `${idx + 1}. ${label}`;
+    if (!dom.breadcrumbs) return;
+    dom.breadcrumbs.innerHTML = "";
+    Array.from(state.pathHighlight).forEach((pid, idx) => {
+      const chip = document.createElement("button");
+      chip.className = "chip";
+      chip.type = "button";
+      chip.textContent = `${idx + 1}. ${formatName(state.peopleById.get(pid))}`;
+      chip.addEventListener("click", () => setSelected(pid));
+      dom.breadcrumbs.appendChild(chip);
     });
-    dom.breadcrumbs.textContent = labels.join(" > ");
   }
 
-  function highlightPath(id, { dim = false } = {}) {
+  function highlightPath(id) {
     state.pathHighlight = new Set(getBreadcrumbPath(id));
     updateBreadcrumbs();
   }
@@ -292,10 +326,14 @@
     card.type = "button";
     card.dataset.personId = person.id;
     card.dataset.gender = formatGender(person);
+    const relationChip = person.relation ? `<span class="person-chip">${person.relation}</span>` : "";
+    const initial = formatName(person).slice(0, 1).toUpperCase();
     card.innerHTML = `
+      ${relationChip}
       <span class="person-name">${formatName(person)}</span>
-      <span class="person-meta">${person.gender === "female" ? "?" : person.gender === "male" ? "?" : "•"} ${person.birth ? String(person.birth).slice(0,4) : ""}${person.death ? `–${String(person.death).slice(0,4)}` : ""}</span>
+      <span class="person-meta">${initial} · ${person.gender === "female" ? "?" : person.gender === "male" ? "?" : "•"} ${person.birth ? String(person.birth).slice(0,4) : ""}${person.death ? `–${String(person.death).slice(0,4)}` : ""}</span>
     `;
+    card.setAttribute("aria-label", `${formatName(person)}${person.relation ? `, ${person.relation}` : ""}`);
     card.addEventListener("click", () => setSelected(person.id));
     return card;
   }
@@ -307,10 +345,18 @@
     if (!state.selectedId) {
       dom.focusView.innerHTML = `
         <div class="empty-state">
-          <h3>Mulakan dengan Carian</h3>
+          <h3>Mulakan dengan carian</h3>
           <p>Cari nama ahli keluarga untuk fokus dan lihat ibu bapa, pasangan, dan anak.</p>
+          <div class="empty-actions">
+            <button class="btn small" id="empty-self">Pilih Self</button>
+            <button class="btn ghost small" id="empty-full">Lihat Full Tree</button>
+          </div>
         </div>
       `;
+      const selfBtn = document.getElementById("empty-self");
+      const fullBtn = document.getElementById("empty-full");
+      if (selfBtn && state.data?.selfId) selfBtn.addEventListener("click", () => setSelected(state.data.selfId));
+      if (fullBtn) fullBtn.addEventListener("click", () => updateViewMode("full"));
       return;
     }
 
@@ -348,33 +394,35 @@
         return details;
       };
 
-      accordion.appendChild(makeSection("Parents", parents, () => {
+      accordion.appendChild(makeSection(`Parents (${parents.length})`, parents, () => {
         state.focusAncDepth = Math.min(state.focusAncDepth + 1, 4);
         renderFocusView();
+        showToast("Tambah generasi ibu bapa");
       }, false));
 
-      accordion.appendChild(makeSection("Spouses", spouses, null, false));
+      accordion.appendChild(makeSection(`Spouses (${spouses.length})`, spouses, null, false));
 
       const childList = state.focusShowAllChildren ? children : children.slice(0, 4);
-      accordion.appendChild(makeSection("Children", childList, () => {
+      accordion.appendChild(makeSection(`Children (${children.length})`, childList, () => {
         state.focusDescDepth = Math.min(state.focusDescDepth + 1, 4);
         renderFocusView();
+        showToast("Tambah generasi anak");
       }, false));
 
       dom.focusView.appendChild(accordion);
       return;
     }
-
     const focusShell = document.createElement("div");
     focusShell.className = "focus-shell";
 
     const ancestors = document.createElement("div");
     ancestors.className = "focus-block";
-    ancestors.innerHTML = `<div class="focus-block-head"><span>Parents</span><button class="btn ghost small" type="button">Expand Ancestors</button></div>`;
+    ancestors.innerHTML = `<div class="focus-block-head"><span>Parents (${parents.length})</span><button class="btn ghost small" type="button">Expand Ancestors</button></div>`;
     const ancBtn = ancestors.querySelector("button");
     ancBtn.addEventListener("click", () => {
       state.focusAncDepth = Math.min(state.focusAncDepth + 1, 4);
       renderFocusView();
+      showToast("Tambah generasi ibu bapa");
     });
 
     const parentsRow = document.createElement("div");
@@ -395,7 +443,7 @@
 
     const spouseBlock = document.createElement("div");
     spouseBlock.className = "focus-block";
-    spouseBlock.innerHTML = `<div class="focus-block-head"><span>Spouses</span></div>`;
+    spouseBlock.innerHTML = `<div class="focus-block-head"><span>Spouses (${spouses.length})</span></div>`;
     const spousesRow = document.createElement("div");
     spousesRow.className = "focus-row";
     spouses.forEach((s) => spousesRow.appendChild(renderPersonCard(s)));
@@ -406,12 +454,12 @@
     const childCount = children.length;
     const childHead = document.createElement("div");
     childHead.className = "focus-block-head";
-    childHead.innerHTML = `<span>Children</span>`;
+    childHead.innerHTML = `<span>Children (${childCount})</span>`;
     if (childCount > 4 && !state.focusShowAllChildren) {
       const moreBtn = document.createElement("button");
       moreBtn.className = "btn ghost small";
       moreBtn.type = "button";
-      moreBtn.textContent = `+${childCount - 4} more`;
+      moreBtn.textContent = `+${childCount - 4} lagi`;
       moreBtn.addEventListener("click", () => {
         state.focusShowAllChildren = true;
         renderFocusView();
@@ -423,9 +471,10 @@
     childExpand.type = "button";
     childExpand.textContent = "Expand Descendants";
     childExpand.addEventListener("click", () => {
-      state.focusDescDepth = Math.min(state.focusDescDepth + 1, 4);
-      renderFocusView();
-    });
+        state.focusDescDepth = Math.min(state.focusDescDepth + 1, 4);
+        renderFocusView();
+        showToast("Tambah generasi anak");
+      });
     childHead.appendChild(childExpand);
     childrenBlock.appendChild(childHead);
 
@@ -563,19 +612,23 @@
       </div>
       <div class="drawer-section">
         <strong>Parents</strong>
-        <div class="drawer-row">${getParents(id).map((p) => formatName(p)).join(", ") || "-"}</div>
+        <div class="drawer-row">${getParents(id).map((p) => `<button class=\"chip\" data-id=\"${p.id}\">${formatName(p)}</button>`).join(" ") || "-"}</div>
       </div>
       <div class="drawer-section">
         <strong>Spouses</strong>
-        <div class="drawer-row">${getSpouses(id).map((p) => formatName(p)).join(", ") || "-"}</div>
+        <div class="drawer-row">${getSpouses(id).map((p) => `<button class=\"chip\" data-id=\"${p.id}\">${formatName(p)}</button>`).join(" ") || "-"}</div>
       </div>
       <div class="drawer-section">
         <strong>Children</strong>
-        <div class="drawer-row">${getChildren(id).map((p) => formatName(p)).join(", ") || "-"}</div>
+        <div class="drawer-row">${getChildren(id).map((p) => `<button class=\"chip\" data-id=\"${p.id}\">${formatName(p)}</button>`).join(" ") || "-"}</div>
       </div>
     `;
     dom.drawer.classList.add("is-open");
     dom.drawer.setAttribute("aria-hidden", "false");
+    showBackdrop(true);
+    dom.drawerBody.querySelectorAll("button.chip").forEach((chip) => {
+      chip.addEventListener("click", () => setSelected(chip.dataset.id));
+    });
     if (dom.drawerCta) {
       dom.drawerCta.onclick = () => {
         updateViewMode("full");
@@ -596,35 +649,120 @@
     if (!dom.drawer) return;
     dom.drawer.classList.remove("is-open");
     dom.drawer.setAttribute("aria-hidden", "true");
+    showBackdrop(false);
   }
 
-  function renderSearchResults(matches, query) {
-    if (!dom.searchResults) return;
-    dom.searchResults.innerHTML = "";
+  function renderSearchResults(matches, query, target) {
+    const resultsEl = target || dom.searchResults;
+    if (!resultsEl) return;
+    resultsEl.innerHTML = "";
+state.searchIndex = -1;
     if (!query) {
-      dom.searchResults.classList.remove("is-open");
+      resultsEl.classList.remove("is-open");
       return;
     }
-    matches.slice(0, 8).forEach((p) => {
+    matches.slice(0, 8).forEach((p, idx) => {
       const item = document.createElement("div");
       item.className = "search-item";
+item.dataset.index = String(idx);
       const name = formatName(p);
-      const idx = name.toLowerCase().indexOf(query.toLowerCase());
-      if (idx >= 0) {
-        const before = name.slice(0, idx);
-        const mid = name.slice(idx, idx + query.length);
-        const after = name.slice(idx + query.length);
-        item.innerHTML = `<span class="search-name">${before}<mark>${mid}</mark>${after}</span>`;
+      const idxMatch = name.toLowerCase().indexOf(query.toLowerCase());
+      const initial = name.slice(0, 1).toUpperCase();
+      const relation = p.relation || "";
+      if (idxMatch >= 0) {
+        const before = name.slice(0, idxMatch);
+        const mid = name.slice(idxMatch, idxMatch + query.length);
+        const after = name.slice(idxMatch + query.length);
+        item.innerHTML = `
+          <span class=\"search-avatar\">${initial}</span>
+          <div>
+            <div class=\"search-name\">${before}<mark>${mid}</mark>${after}</div>
+            <div class=\"search-meta\">${relation}</div>
+          </div>
+          <span class=\"search-badge\">${p.birth ? String(p.birth).slice(0,4) : "-"}</span>
+        `;
       } else {
-        item.innerHTML = `<span class="search-name">${name}</span>`;
+        item.innerHTML = `
+          <span class=\"search-avatar\">${initial}</span>
+          <div>
+            <div class=\"search-name\">${name}</div>
+            <div class=\"search-meta\">${relation}</div>
+          </div>
+          <span class=\"search-badge\">${p.birth ? String(p.birth).slice(0,4) : "-"}</span>
+        `;
       }
       item.addEventListener("click", () => {
         setSelected(p.id, { fromSearch: true });
-        dom.searchResults.classList.remove("is-open");
+        resultsEl.classList.remove("is-open");
+        closeSearchOverlay();
+closeActionsSheet();
       });
-      dom.searchResults.appendChild(item);
+      resultsEl.appendChild(item);
     });
-    dom.searchResults.classList.add("is-open");
+    resultsEl.dataset.count = String(Math.min(matches.length, 8));
+resultsEl.classList.add("is-open");
+  }
+
+  function setActiveResult(resultsEl, index) {
+    const items = Array.from(resultsEl.querySelectorAll(".search-item"));
+    items.forEach((el) => el.classList.remove("active"));
+    if (index < 0 || index >= items.length) return;
+    items[index].classList.add("active");
+    items[index].scrollIntoView({ block: "nearest" });
+  }
+
+  function handleSearchKeydown(event, inputEl, resultsEl) {
+    if (!resultsEl) return;
+    const count = Number(resultsEl.dataset.count || 0);
+    if (count === 0) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      state.searchIndex = Math.min(count - 1, state.searchIndex + 1);
+      setActiveResult(resultsEl, state.searchIndex);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      state.searchIndex = Math.max(0, state.searchIndex - 1);
+      setActiveResult(resultsEl, state.searchIndex);
+    } else if (event.key === "Enter") {
+      const items = resultsEl.querySelectorAll(".search-item");
+      const target = items[state.searchIndex] || items[0];
+      if (target) target.click();
+    } else if (event.key === "Escape") {
+      resultsEl.classList.remove("is-open");
+      if (inputEl) inputEl.blur();
+    }
+  }
+  function openActionsSheet() {
+    if (!dom.actionsSheet) return;
+    dom.actionsSheet.hidden = false;
+    dom.actionsSheet.classList.add("is-open");
+    showBackdrop(true);
+  }
+
+  function closeActionsSheet() {
+    if (!dom.actionsSheet) return;
+    dom.actionsSheet.classList.remove("is-open");
+    dom.actionsSheet.hidden = true;
+    showBackdrop(false);
+  }
+  function openSearchOverlay() {
+    if (!dom.searchOverlay) return;
+    dom.searchOverlay.hidden = false;
+    dom.searchOverlay.classList.add("is-open");
+    dom.searchOverlayInput?.focus();
+  }
+
+  function closeSearchOverlay() {
+    if (!dom.searchOverlay) return;
+    dom.searchOverlay.classList.remove("is-open");
+    dom.searchOverlay.hidden = true;
+  }
+
+  function toggleMenu(btn, menu) {
+    if (!btn || !menu) return;
+    const open = !menu.hidden;
+    menu.hidden = open;
+    btn.setAttribute("aria-expanded", String(!open));
   }
 
   async function exportToPng() {
@@ -646,7 +784,6 @@
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
     pdf.save("family-tree.pdf");
   }
-
   function wireEvents() {
     if (dom.viewFocusBtn) dom.viewFocusBtn.addEventListener("click", () => updateViewMode("focus"));
     if (dom.viewFullBtn) dom.viewFullBtn.addEventListener("click", () => updateViewMode("full"));
@@ -665,11 +802,28 @@
     if (dom.insightsBtn) dom.insightsBtn.addEventListener("click", () => {
       if (!dom.insightsPanel) return;
       dom.insightsPanel.classList.toggle("is-open");
+      showBackdrop(dom.insightsPanel.classList.contains("is-open"));
     });
+    if (dom.exportMenuBtn) dom.exportMenuBtn.addEventListener("click", () => toggleMenu(dom.exportMenuBtn, dom.exportMenuList));
+    if (dom.viewMenuBtn) dom.viewMenuBtn.addEventListener("click", () => toggleMenu(dom.viewMenuBtn, dom.viewMenuList));
+
     if (dom.exportPngBtn) dom.exportPngBtn.addEventListener("click", exportToPng);
     if (dom.exportPdfBtn) dom.exportPdfBtn.addEventListener("click", exportToPdf);
 
-    if (dom.branchOnlyBtn) dom.branchOnlyBtn.addEventListener("click", () => {
+    if (dom.mobileActionsBtn) dom.mobileActionsBtn.addEventListener("click", () => {
+openActionsSheet();
+});
+
+if (dom.actionsClose) dom.actionsClose.addEventListener("click", closeActionsSheet);
+if (dom.actionFocus) dom.actionFocus.addEventListener("click", () => { updateViewMode("focus"); closeActionsSheet(); });
+if (dom.actionFull) dom.actionFull.addEventListener("click", () => { updateViewMode("full"); closeActionsSheet(); });
+if (dom.actionCenter) dom.actionCenter.addEventListener("click", () => { if (state.selectedId) renderFocusView(); closeActionsSheet(); });
+if (dom.actionReset) dom.actionReset.addEventListener("click", () => { state.focusAncDepth = 1; state.focusDescDepth = 1; state.focusShowAllChildren = false; state.expandedIds.clear(); updateViewMode("focus"); closeActionsSheet(); });
+if (dom.actionExportPng) dom.actionExportPng.addEventListener("click", () => { exportToPng(); closeActionsSheet(); });
+if (dom.actionExportPdf) dom.actionExportPdf.addEventListener("click", () => { exportToPdf(); closeActionsSheet(); });
+if (dom.actionInsights) dom.actionInsights.addEventListener("click", () => { if (dom.insightsPanel) dom.insightsPanel.classList.toggle("is-open"); closeActionsSheet(); });
+
+if (dom.branchOnlyBtn) dom.branchOnlyBtn.addEventListener("click", () => {
       state.branchOnly = !state.branchOnly;
       dom.branchOnlyBtn.classList.toggle("is-active", state.branchOnly);
       renderFullTree();
@@ -712,15 +866,35 @@
     }
 
     if (dom.searchInput) {
-      dom.searchInput.addEventListener("input", (e) => {
-        const q = e.target.value.trim();
-        if (!q) return renderSearchResults([], "");
-        const matches = state.data.people.filter((p) => formatName(p).toLowerCase().includes(q.toLowerCase()));
-        renderSearchResults(matches, q);
-      });
-    }
+dom.searchInput.addEventListener("input", (e) => {
+const q = e.target.value.trim();
+if (!q) return renderSearchResults([], "", dom.searchResults);
+const matches = state.data.people.filter((p) => formatName(p).toLowerCase().includes(q.toLowerCase()));
+renderSearchResults(matches, q, dom.searchResults);
+});
+dom.searchInput.addEventListener("keydown", (e) => handleSearchKeydown(e, dom.searchInput, dom.searchResults));
+}
+
+if (dom.searchOverlayInput) {
+dom.searchOverlayInput.addEventListener("input", (e) => {
+const q = e.target.value.trim();
+if (!q) return renderSearchResults([], "", dom.searchOverlayResults);
+const matches = state.data.people.filter((p) => formatName(p).toLowerCase().includes(q.toLowerCase()));
+renderSearchResults(matches, q, dom.searchOverlayResults);
+});
+dom.searchOverlayInput.addEventListener("keydown", (e) => handleSearchKeydown(e, dom.searchOverlayInput, dom.searchOverlayResults));
+}
+
+if (dom.searchOverlayClose) dom.searchOverlayClose.addEventListener("click", closeSearchOverlay);
 
     if (dom.drawerClose) dom.drawerClose.addEventListener("click", closeDrawer);
+
+    if (dom.backdrop) dom.backdrop.addEventListener("click", () => {
+      closeDrawer();
+closeActionsSheet();
+      if (dom.insightsPanel) dom.insightsPanel.classList.remove("is-open");
+      showBackdrop(false);
+    });
 
     if (dom.fatalReload) dom.fatalReload.addEventListener("click", () => window.location.reload());
     if (dom.fatalClose) dom.fatalClose.addEventListener("click", closeFatalError);
@@ -733,14 +907,26 @@
     document.addEventListener("keydown", (e) => {
       if (e.key === "/") {
         e.preventDefault();
-        dom.searchInput?.focus();
+        if (isMobile()) openSearchOverlay();
+        else dom.searchInput?.focus();
       }
       if (e.key === "Escape") {
         closeDrawer();
+closeActionsSheet();
         closeFatalError();
+        closeSearchOverlay();
+closeActionsSheet();
+        if (dom.exportMenuList) dom.exportMenuList.hidden = true;
+        if (dom.viewMenuList) dom.viewMenuList.hidden = true;
       }
-      if (e.key.toLowerCase() === "c") {
-        if (state.selectedId) renderFocusView();
+    });
+
+    document.addEventListener("click", (e) => {
+      if (dom.exportMenuList && !dom.exportMenuList.contains(e.target) && e.target !== dom.exportMenuBtn) {
+        dom.exportMenuList.hidden = true;
+      }
+      if (dom.viewMenuList && !dom.viewMenuList.contains(e.target) && e.target !== dom.viewMenuBtn) {
+        dom.viewMenuList.hidden = true;
       }
     });
   }
@@ -754,7 +940,7 @@
       buildIndex(data);
       updateStats();
       state.selectedId = data.selfId || data.people?.[0]?.id || "";
-      highlightPath(state.selectedId, { dim: false });
+      highlightPath(state.selectedId);
       updateViewMode("focus");
       renderFocusView();
       renderFullTree();
@@ -769,3 +955,25 @@
 
   document.addEventListener("DOMContentLoaded", initApp);
 })();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
