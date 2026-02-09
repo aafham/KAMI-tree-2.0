@@ -1736,6 +1736,19 @@ function applyViewMode() {
     document.body.dataset.view = "tree";
     return;
   }
+  if (viewMode === "timeline") {
+    document.body.dataset.view = "timeline";
+    timelineSection.hidden = false;
+    treeWrap.hidden = true;
+    renderTimeline();
+  } else {
+    document.body.dataset.view = "tree";
+    timelineSection.hidden = true;
+    treeWrap.hidden = false;
+  }
+  applyLanguage();
+}
+
 // Focus/full view helpers and visibility logic.
 function updateTreeViewButtons() {
   const isFocus = treeView === "focus";
@@ -2050,18 +2063,6 @@ function buildBreadcrumbLine(personId) {
   const current = formatDisplayName(peopleById.get(personId)?.name || "");
   if (!current && names.length === 0) return "";
   return names.length ? `${names.join(" → ")} → ${current}` : current;
-}
-  if (viewMode === "timeline") {
-    document.body.dataset.view = "timeline";
-    timelineSection.hidden = false;
-    treeWrap.hidden = true;
-    renderTimeline();
-  } else {
-    document.body.dataset.view = "tree";
-    timelineSection.hidden = true;
-    treeWrap.hidden = false;
-  }
-  applyLanguage();
 }
 
 function scheduleRender() {
