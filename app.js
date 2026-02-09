@@ -183,7 +183,7 @@ const STORAGE_KEY = "familyTreePrefs";
 const DATA_KEY = "familyTreeData";
 const FORCE_RESET = false;
 const MOBILE_CONTROLS_KEY = "ft_controls_collapsed";
-const APP_VERSION = "2026-02-10";
+const APP_VERSION = "2026-02-10.1";
 
 const isMobileView = () => window.matchMedia("(max-width: 720px)").matches;
 
@@ -1210,6 +1210,7 @@ function initApp() {
   debugMode = params.get("debug") === "1";
   if (debugMode) updateDebugOverlay("Booting...");
   console.info("[KAMI-tree] version", APP_VERSION);
+  console.info("[INIT] starting");
 
   applyCardScale();
   applyThemePreset();
@@ -1251,6 +1252,7 @@ function initApp() {
   }
 
   const dataUrls = getDataUrlCandidates();
+  console.info("[FETCH] candidates", dataUrls);
   updateDebugOverlay(`Fetching ${dataUrls[0] || "data.json"}...`);
 
   loadData(dataUrls, stored, t).catch((err) => {
@@ -1291,7 +1293,7 @@ async function loadData(dataUrls, stored, t) {
   }
 
   console.log("[OK] data loaded:", data.people.length, data.unions.length);
-  console.log("[OK] nodesList:", nodesList.length, "baseSize:", baseSize);
+  console.log("[RENDER] nodes:", nodesList.length, "baseSize:", baseSize);
   updateDebugOverlay(`OK | people: ${data.people?.length || 0} | unions: ${data.unions?.length || 0}`);
 }
 
@@ -1361,11 +1363,21 @@ function savePrefs() {
 }
 
 function loadStoredData() {
-  return null;
+  try {
+    const raw = localStorage.getItem(DATA_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (err) {
+    console.warn("[INIT] failed to read cached data", err);
+    return null;
+  }
 }
 
 function storeData() {
-  // no-op: view-only mode, always use data.json
+  try {
+    if (treeData) localStorage.setItem(DATA_KEY, JSON.stringify(treeData));
+  } catch {
+    // ignore storage errors
+  }
 }
 
 function getDataUrlCandidates() {
@@ -1398,14 +1410,17 @@ async function fetchDataJson(candidates) {
   let lastErr = null;
   for (const url of candidates) {
     try {
+      console.info("[FETCH] trying", url);
       const cacheBuster = url.includes("?") ? `&ts=${Date.now()}` : `?ts=${Date.now()}`;
       const res = await fetch(`${url}${cacheBuster}`, { cache: "no-store" });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status} ${res.statusText} (${url})`);
       }
       const data = await res.json();
+      console.info("[FETCH] ok", url);
       return { data, url };
     } catch (err) {
+      console.warn("[FETCH] failed", url, err);
       lastErr = err;
     }
   }
