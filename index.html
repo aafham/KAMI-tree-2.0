@@ -25,6 +25,7 @@
           <div class="minimap-label" data-i18n="minimapTitle">Minimap</div>
           <div class="minimap minimap-brand" id="minimap">
             <canvas id="minimap-canvas"></canvas>
+            <div id="minimap-viewport" aria-hidden="true"></div>
           </div>
           <button class="minimap-close" id="minimap-close-btn" type="button" aria-label="Tutup minimap">×</button>
           <p class="minimap-hint" id="minimap-hint" data-i18n="minimapHint">Klik pada kotak kecil untuk lompat lokasi. Kotak putih menunjukkan kawasan semasa.</p>
@@ -309,7 +310,7 @@
         <h3 id="search-overlay-title" data-i18n="quickJump">Search / Jump</h3>
         <button id="search-overlay-close" class="btn ghost small" type="button">×</button>
       </div>
-      <input id="search-overlay-input" class="input" type="search" placeholder="Cari nama ahli keluarga..." />
+      <input id="search-overlay-input" class="input" type="search" placeholder="Cari nama ahli keluarga..." data-i18n-placeholder="searchPlaceholder" />
       <div id="search-overlay-results" class="search-results overlay-results" aria-live="polite"></div>
     </div>
   </div>

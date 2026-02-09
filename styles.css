@@ -2014,6 +2014,15 @@ body.hide-tags .person-tags {
   display: block;
 }
 
+.minimap #minimap-viewport {
+  position: absolute;
+  inset: 6px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  pointer-events: none;
+  opacity: 0.4;
+}
+
 .minimap.minimap-brand {
   position: relative !important;
   inset: auto !important;

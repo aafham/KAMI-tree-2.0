@@ -1379,7 +1379,12 @@ function getDataUrlCandidates() {
     // ignore
   }
   try {
-    const basePath = `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, "/")}`;
+    const path = window.location.pathname || "/";
+    const parts = path.split("/").filter(Boolean);
+    if (parts.length > 0) {
+      push(`${window.location.origin}/${parts[0]}/data.json`);
+    }
+    const basePath = `${window.location.origin}${path.endsWith("/") ? path : `${path}/`}`;
     push(new URL("data.json", basePath).toString());
   } catch {
     // ignore
