@@ -17,3 +17,10 @@
 ## Keyboard Shortcuts
 - `/` focus search (mobile opens overlay)
 - `Esc` close drawer/search/menus
+
+## How to Test
+1. Open `index.html` and check console for errors.
+2. Use `/` to search and select a person.
+3. Toggle Focus / Full Tree, test filters and Branch Only.
+4. Click Expand All / Collapse All, then Zoom + / - / Reset Zoom.
+5. Open the drawer and test Set as Focus, Open Branch, Copy Link.

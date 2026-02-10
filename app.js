@@ -6,6 +6,8 @@
   const APP_VERSION = "2026-02-10.8";
   const MAX_SEARCH_RESULTS = 8;
   const BASE_ROW_HEIGHT = 56;
+  // Expand All is capped to keep performance stable on large datasets.
+  const MAX_EXPAND_NODES = 500;
 
   // [constants/dom]
   const dom = {
@@ -776,6 +778,7 @@
       cursor = parents[0].id;
     }
     chain.reverse().forEach((pid) => state.expandedIds.add(pid));
+    getChildren(id).forEach((child) => state.expandedIds.add(child.id));
   }
 
   function scrollToSelectedInFullList() {
@@ -913,11 +916,12 @@
 
   // [export]
   async function exportToPng() {
-    if (!dom.treeArea || !window.html2canvas) {
+    if (!window.html2canvas) {
       showToast("Export PNG belum tersedia");
       return;
     }
-    const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
+    const target = dom.fullView && !dom.fullView.hidden ? dom.fullView : dom.focusView || dom.treeArea;
+    const canvas = await window.html2canvas(target, { backgroundColor: "#f6f5f0", scale: 2 });
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
     link.download = "family-tree.png";
@@ -925,11 +929,12 @@
   }
 
   async function exportToPdf() {
-    if (!dom.treeArea || !window.html2canvas || !window.jspdf) {
+    if (!window.html2canvas || !window.jspdf) {
       showToast("Export PDF belum tersedia");
       return;
     }
-    const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
+    const target = dom.fullView && !dom.fullView.hidden ? dom.fullView : dom.focusView || dom.treeArea;
+    const canvas = await window.html2canvas(target, { backgroundColor: "#f6f5f0", scale: 2 });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [canvas.width, canvas.height] });
     pdf.addImage(imgData, "PNG", 0, 0, canvas.width, canvas.height);
@@ -976,7 +981,13 @@
 
     if (dom.expandAllBtn) dom.expandAllBtn.addEventListener("click", () => {
       const list = buildFullList();
-      list.forEach((item) => state.expandedIds.add(item.id));
+      const count = Math.min(list.length, MAX_EXPAND_NODES);
+      for (let i = 0; i < count; i += 1) {
+        state.expandedIds.add(list[i].id);
+      }
+      if (list.length > MAX_EXPAND_NODES) {
+        showToast(`Expand terhad kepada ${MAX_EXPAND_NODES} node`);
+      }
       renderFullTree();
     });
 
