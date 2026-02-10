@@ -7,6 +7,7 @@
   const MAX_SEARCH_RESULTS = 8;
   const BASE_ROW_HEIGHT = 56;
 
+  // [constants/dom]
   const dom = {
     app: document.getElementById("app"),
     toolbar: document.getElementById("toolbar"),
@@ -80,6 +81,7 @@
     fatalCopy: document.getElementById("fatalCopy")
   };
 
+  // [state]
   const state = {
     data: null,
     peopleById: new Map(),
@@ -109,6 +111,7 @@
     }
   };
 
+  // [utils]
   const isMobile = () => window.matchMedia("(max-width: 960px)").matches;
 
   function setStatus(message, isError = false) {
@@ -150,6 +153,7 @@
     showBackdrop(false);
   }
 
+  // [data normalize + index]
   function sanitizeString(value) {
     if (value === null || value === undefined) return null;
     const str = String(value).trim();
@@ -250,8 +254,17 @@
         if (!ids.has(cid)) console.warn(`[DATA] Union ${u.id} missing child ${cid}`);
       });
     });
+    data.people.forEach((p) => {
+      if (p.birth && Number.isNaN(new Date(p.birth).getTime())) {
+        console.warn(`[DATA] Invalid birth date for ${p.id}: ${p.birth}`);
+      }
+      if (p.death && Number.isNaN(new Date(p.death).getTime())) {
+        console.warn(`[DATA] Invalid death date for ${p.id}: ${p.death}`);
+      }
+    });
   }
 
+  // [selectors]
   function getParents(id) {
     const refs = state.parentsByChild.get(id) || [];
     const parents = [];
@@ -318,6 +331,7 @@
     return person.gender || "unknown";
   }
 
+  // [renderers]
   function renderPersonCard(person, { compact = false, highlight = false } = {}) {
     const card = document.createElement("button");
     card.className = `person-card${compact ? " compact" : ""}${highlight ? " is-selected" : ""}`;
@@ -506,6 +520,7 @@
     state.listCache = buildFullList();
     const total = state.listCache.length;
 
+    // Virtualization is disabled when zoom != 1 to keep scrolling stable.
     const useVirtual = state.fullScale === 1;
     const containerHeight = dom.fullList.clientHeight || 400;
     const rowHeight = state.listRowHeight;
@@ -635,9 +650,12 @@
 
     const upcoming = getUpcomingBirthday();
     if (upcoming) {
-      const ageNext = computeAge(upcoming.person.birth, null) + 1;
+      const ageNow = computeAge(upcoming.person.birth, null);
+      const ageNext = ageNow !== null ? ageNow + 1 : null;
       if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = formatName(upcoming.person);
-      if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = `${formatDate(upcoming.date)} · ${ageNext} tahun`;
+      if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = ageNext !== null
+        ? `${formatDate(upcoming.date)} · ${ageNext} tahun`
+        : `${formatDate(upcoming.date)}`;
     } else {
       if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = "-";
       if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = "-";
@@ -707,6 +725,7 @@
       dom.drawerCta.onclick = () => {
         state.branchOnly = true;
         if (dom.branchOnlyBtn) dom.branchOnlyBtn.classList.add("is-active");
+        expandPathToSelected(person.id);
         updateViewMode("full");
         renderFullTree();
       };
@@ -742,6 +761,29 @@
     renderFullTree();
     renderDrawer(id);
     if (options.fromSearch) showToast("Fokus pada nama dipilih");
+  }
+
+  function expandPathToSelected(id) {
+    if (!id) return;
+    const chain = [];
+    let cursor = id;
+    let guard = 0;
+    while (cursor && guard < 20) {
+      guard += 1;
+      chain.push(cursor);
+      const parents = getParents(cursor);
+      if (!parents.length) break;
+      cursor = parents[0].id;
+    }
+    chain.reverse().forEach((pid) => state.expandedIds.add(pid));
+  }
+
+  function scrollToSelectedInFullList() {
+    if (!dom.fullList || !state.selectedId) return;
+    const index = state.listCache.findIndex((item) => item.id === state.selectedId);
+    if (index < 0) return;
+    const rowHeight = state.listRowHeight;
+    dom.fullList.scrollTop = index * rowHeight;
   }
   function renderSearchResults(matches, query, target) {
     const resultsEl = target || dom.searchResults;
@@ -869,6 +911,7 @@
     btn.setAttribute("aria-expanded", String(!open));
   }
 
+  // [export]
   async function exportToPng() {
     if (!dom.treeArea || !window.html2canvas) {
       showToast("Export PNG belum tersedia");
@@ -902,6 +945,7 @@
     if (dom.actionExportPdf) dom.actionExportPdf.disabled = !canPdf;
   }
 
+  // [events]
   function wireEvents() {
     if (dom.viewFocusBtn) dom.viewFocusBtn.addEventListener("click", () => updateViewMode("focus"));
     if (dom.viewFullBtn) dom.viewFullBtn.addEventListener("click", () => updateViewMode("full"));
@@ -917,7 +961,11 @@
     });
 
     if (dom.centerBtn) dom.centerBtn.addEventListener("click", () => {
-      if (state.selectedId) renderDrawer(state.selectedId);
+      if (state.viewMode === "full") {
+        scrollToSelectedInFullList();
+      } else if (state.selectedId) {
+        renderDrawer(state.selectedId);
+      }
     });
 
     if (dom.branchOnlyBtn) dom.branchOnlyBtn.addEventListener("click", () => {
@@ -927,12 +975,15 @@
     });
 
     if (dom.expandAllBtn) dom.expandAllBtn.addEventListener("click", () => {
-      state.data.people.forEach((p) => state.expandedIds.add(p.id));
+      const list = buildFullList();
+      list.forEach((item) => state.expandedIds.add(item.id));
       renderFullTree();
     });
 
     if (dom.collapseAllBtn) dom.collapseAllBtn.addEventListener("click", () => {
+      const rootId = state.branchOnly && state.selectedId ? state.selectedId : (state.data.selfId || state.data.people?.[0]?.id);
       state.expandedIds.clear();
+      if (rootId) state.expandedIds.add(rootId);
       renderFullTree();
     });
 
@@ -989,7 +1040,11 @@
 
     if (dom.actionFocus) dom.actionFocus.addEventListener("click", () => { updateViewMode("focus"); closeActionsSheet(); });
     if (dom.actionFull) dom.actionFull.addEventListener("click", () => { updateViewMode("full"); closeActionsSheet(); });
-    if (dom.actionCenter) dom.actionCenter.addEventListener("click", () => { if (state.selectedId) renderDrawer(state.selectedId); closeActionsSheet(); });
+    if (dom.actionCenter) dom.actionCenter.addEventListener("click", () => {
+      if (state.viewMode === "full") scrollToSelectedInFullList();
+      else if (state.selectedId) renderDrawer(state.selectedId);
+      closeActionsSheet();
+    });
     if (dom.actionReset) dom.actionReset.addEventListener("click", () => { state.fullScale = 1; renderFullTree(); closeActionsSheet(); });
     if (dom.actionExportPng) dom.actionExportPng.addEventListener("click", () => { exportToPng(); closeActionsSheet(); });
     if (dom.actionExportPdf) dom.actionExportPdf.addEventListener("click", () => { exportToPdf(); closeActionsSheet(); });
@@ -1071,6 +1126,7 @@
     });
   }
 
+  // [init]
   async function initApp() {
     try {
       console.info("[INIT]", APP_VERSION);
