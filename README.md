@@ -4,7 +4,7 @@
 - Focus View with Parents / Spouses / Children cards and expand depth.
 - Full Tree view with virtualization, branch controls, filters, and zoom.
 - Insights: totals, gender (inferred), cucu/cicit, upcoming birthday.
-- Detail drawer with photo, note, age, and quick actions.
+- Detail drawer with photo, note, age, and quick actions (Set as Focus, Open Branch, Copy Link).
 - Export PNG / PDF with graceful fallback.
 - Mobile search overlay and actions sheet.
 
@@ -16,11 +16,15 @@
 
 ## Keyboard Shortcuts
 - `/` focus search (mobile opens overlay)
-- `Esc` close drawer/search/menus
+- `Esc` close drawer, search, menus, actions sheet, insights
 
 ## How to Test
-1. Open `index.html` and check console for errors.
-2. Use `/` to search and select a person.
-3. Toggle Focus / Full Tree, test filters and Branch Only.
-4. Click Expand All / Collapse All, then Zoom + / - / Reset Zoom.
-5. Open the drawer and test Set as Focus, Open Branch, Copy Link.
+1. Open `index.html` and check console for errors or warnings.
+2. Use `/` to search and select a person; verify focus cards update.
+3. Toggle Focus / Full Tree and confirm selection highlight in both views.
+4. Test filters (Relation, Status, Ada Foto, Ada Nota) in Full Tree.
+5. Toggle Branch Only, Expand All (note limit toast if large), Collapse All.
+6. Zoom + / - / Reset Zoom and ensure scrolling stays stable.
+7. Open the drawer and test Set as Focus, Open Branch, Copy Link (#pXX deep link).
+8. Test Esc/backdrop closing for menu, actions sheet, drawer, insights.
+9. On mobile width, confirm toolbar stacks, drawer scrolls, and insights panel is usable.

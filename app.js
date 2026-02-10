@@ -3,7 +3,7 @@
 (() => {
   "use strict";
 
-  const APP_VERSION = "2026-02-10.8";
+  const APP_VERSION = "2026-02-10.9";
   const MAX_SEARCH_RESULTS = 8;
   const BASE_ROW_HEIGHT = 56;
   // Expand All is capped to keep performance stable on large datasets.
@@ -143,7 +143,7 @@
       dom.fatalError.hidden = false;
       dom.fatalError.classList.add("is-open");
       dom.fatalError.setAttribute("aria-hidden", "false");
-      showBackdrop(true);
+      syncBackdrop();
     }
   }
 
@@ -152,7 +152,20 @@
     dom.fatalError.classList.remove("is-open");
     dom.fatalError.setAttribute("aria-hidden", "true");
     dom.fatalError.hidden = true;
-    showBackdrop(false);
+    syncBackdrop();
+  }
+
+  function isBackdropNeeded() {
+    return Boolean(
+      dom.drawer?.classList.contains("is-open") ||
+      dom.actionsSheet?.classList.contains("is-open") ||
+      dom.insightsPanel?.classList.contains("is-open") ||
+      dom.fatalError?.classList.contains("is-open")
+    );
+  }
+
+  function syncBackdrop() {
+    showBackdrop(isBackdropNeeded());
   }
 
   // [data normalize + index]
@@ -172,6 +185,8 @@
     normalized.birth = sanitizeString(person.birth);
     normalized.death = sanitizeString(person.death);
     normalized.gender = sanitizeString(person.gender);
+    if (normalized.gender) normalized.gender = normalized.gender.toLowerCase();
+    if (normalized.gender !== "male" && normalized.gender !== "female") normalized.gender = null;
     normalized.gender = inferGender(normalized);
     return normalized;
   }
@@ -496,19 +511,19 @@
     });
   }
 
-  function buildFullList() {
+  function buildFullList({ ignoreExpanded = false, applyFilter = true } = {}) {
     const rootId = state.branchOnly && state.selectedId ? state.selectedId : (state.data.selfId || state.data.people?.[0]?.id);
     if (!rootId) return [];
     const list = [];
     const visit = (id, depth) => {
       if (!state.peopleById.has(id)) return;
       list.push({ id, depth });
-      if (!state.expandedIds.has(id)) return;
+      if (!ignoreExpanded && !state.expandedIds.has(id)) return;
       const children = getChildren(id);
       children.forEach((child) => visit(child.id, depth + 1));
     };
     visit(rootId, 1);
-    return applyFilters(list);
+    return applyFilter ? applyFilters(list) : list;
   }
 
   function renderFullTree() {
@@ -522,7 +537,7 @@
     state.listCache = buildFullList();
     const total = state.listCache.length;
 
-    // Virtualization is disabled when zoom != 1 to keep scrolling stable.
+    // Virtualization is disabled when zoom != 1 to keep scrolling stable with CSS zoom.
     const useVirtual = state.fullScale === 1;
     const containerHeight = dom.fullList.clientHeight || 400;
     const rowHeight = state.listRowHeight;
@@ -574,7 +589,8 @@
       dom.fullListInner.appendChild(row);
     });
 
-    dom.fullListInner.style.transform = `scale(${state.fullScale})`;
+    dom.fullListInner.style.transform = "";
+    dom.fullListInner.style.zoom = state.fullScale === 1 ? "" : String(state.fullScale);
   }
 
   function updateViewMode(next) {
@@ -608,6 +624,7 @@
 
   function getUpcomingBirthday() {
     const today = new Date();
+    today.setHours(0, 0, 0, 0);
     const candidates = state.data.people
       .filter((p) => p.birth)
       .map((p) => {
@@ -652,8 +669,7 @@
 
     const upcoming = getUpcomingBirthday();
     if (upcoming) {
-      const ageNow = computeAge(upcoming.person.birth, null);
-      const ageNext = ageNow !== null ? ageNow + 1 : null;
+      const ageNext = computeAge(upcoming.person.birth, upcoming.date);
       if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = formatName(upcoming.person);
       if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = ageNext !== null
         ? `${formatDate(upcoming.date)} · ${ageNext} tahun`
@@ -717,7 +733,7 @@
 
     dom.drawer.classList.add("is-open");
     dom.drawer.setAttribute("aria-hidden", "false");
-    showBackdrop(true);
+    syncBackdrop();
 
     dom.drawerBody.querySelectorAll("button.chip").forEach((chip) => {
       chip.addEventListener("click", () => setSelected(chip.dataset.id));
@@ -752,7 +768,7 @@
     if (!dom.drawer) return;
     dom.drawer.classList.remove("is-open");
     dom.drawer.setAttribute("aria-hidden", "true");
-    showBackdrop(false);
+    syncBackdrop();
   }
 
   function setSelected(id, options = {}) {
@@ -783,6 +799,11 @@
 
   function scrollToSelectedInFullList() {
     if (!dom.fullList || !state.selectedId) return;
+    if (state.fullScale !== 1) {
+      const row = dom.fullListInner?.querySelector(`[data-person-id="${state.selectedId}"]`);
+      if (row) dom.fullList.scrollTop = row.offsetTop;
+      return;
+    }
     const index = state.listCache.findIndex((item) => item.id === state.selectedId);
     if (index < 0) return;
     const rowHeight = state.listRowHeight;
@@ -884,14 +905,14 @@
     if (!dom.actionsSheet) return;
     dom.actionsSheet.hidden = false;
     dom.actionsSheet.classList.add("is-open");
-    showBackdrop(true);
+    syncBackdrop();
   }
 
   function closeActionsSheet() {
     if (!dom.actionsSheet) return;
     dom.actionsSheet.classList.remove("is-open");
     dom.actionsSheet.hidden = true;
-    showBackdrop(false);
+    syncBackdrop();
   }
 
   function openSearchOverlay() {
@@ -905,6 +926,12 @@
     if (!dom.searchOverlay) return;
     dom.searchOverlay.classList.remove("is-open");
     dom.searchOverlay.hidden = true;
+  }
+
+  function closeMoreMenu() {
+    if (!dom.moreMenuList || !dom.moreMenuBtn) return;
+    dom.moreMenuList.hidden = true;
+    dom.moreMenuBtn.setAttribute("aria-expanded", "false");
   }
 
   function toggleMenu(btn, menu) {
@@ -961,6 +988,12 @@
       state.focusShowAllChildren = false;
       state.expandedIds.clear();
       state.branchOnly = false;
+      state.fullScale = 1;
+      state.filters = { relation: "", status: "", hasPhoto: false, hasNote: false };
+      if (dom.filterRelation) dom.filterRelation.value = "";
+      if (dom.filterStatus) dom.filterStatus.value = "";
+      if (dom.filterPhoto) dom.filterPhoto.checked = false;
+      if (dom.filterNote) dom.filterNote.checked = false;
       if (dom.branchOnlyBtn) dom.branchOnlyBtn.classList.remove("is-active");
       updateViewMode("focus");
     });
@@ -971,6 +1004,7 @@
       } else if (state.selectedId) {
         renderDrawer(state.selectedId);
       }
+      closeMoreMenu();
     });
 
     if (dom.branchOnlyBtn) dom.branchOnlyBtn.addEventListener("click", () => {
@@ -980,7 +1014,7 @@
     });
 
     if (dom.expandAllBtn) dom.expandAllBtn.addEventListener("click", () => {
-      const list = buildFullList();
+      const list = buildFullList({ ignoreExpanded: true, applyFilter: false });
       const count = Math.min(list.length, MAX_EXPAND_NODES);
       for (let i = 0; i < count; i += 1) {
         state.expandedIds.add(list[i].id);
@@ -1036,14 +1070,15 @@
 
     if (dom.moreMenuBtn) dom.moreMenuBtn.addEventListener("click", () => toggleMenu(dom.moreMenuBtn, dom.moreMenuList));
 
-    if (dom.exportPngBtn) dom.exportPngBtn.addEventListener("click", exportToPng);
-    if (dom.exportPdfBtn) dom.exportPdfBtn.addEventListener("click", exportToPdf);
+    if (dom.exportPngBtn) dom.exportPngBtn.addEventListener("click", () => { exportToPng(); closeMoreMenu(); });
+    if (dom.exportPdfBtn) dom.exportPdfBtn.addEventListener("click", () => { exportToPdf(); closeMoreMenu(); });
 
     if (dom.toggleDebugBtn) dom.toggleDebugBtn.addEventListener("click", () => {
       state.debugMode = !state.debugMode;
       dom.toggleDebugBtn.classList.toggle("is-active", state.debugMode);
       renderFocusView();
       renderFullTree();
+      closeMoreMenu();
     });
 
     if (dom.mobileActionsBtn) dom.mobileActionsBtn.addEventListener("click", openActionsSheet);
@@ -1073,7 +1108,7 @@
     if (dom.insightsBtn) dom.insightsBtn.addEventListener("click", () => {
       if (!dom.insightsPanel) return;
       dom.insightsPanel.classList.toggle("is-open");
-      showBackdrop(dom.insightsPanel.classList.contains("is-open"));
+      syncBackdrop();
     });
 
     if (dom.searchInput) {
@@ -1104,7 +1139,10 @@
       closeActionsSheet();
       closeFatalError();
       if (dom.insightsPanel) dom.insightsPanel.classList.remove("is-open");
-      showBackdrop(false);
+      syncBackdrop();
+    });
+    if (dom.searchOverlay) dom.searchOverlay.addEventListener("click", (e) => {
+      if (e.target === dom.searchOverlay) closeSearchOverlay();
     });
 
     if (dom.fatalReload) dom.fatalReload.addEventListener("click", () => window.location.reload());
@@ -1126,13 +1164,15 @@
         closeActionsSheet();
         closeFatalError();
         closeSearchOverlay();
-        if (dom.moreMenuList) dom.moreMenuList.hidden = true;
+        if (dom.insightsPanel) dom.insightsPanel.classList.remove("is-open");
+        closeMoreMenu();
+        syncBackdrop();
       }
     });
 
     document.addEventListener("click", (e) => {
       if (dom.moreMenuList && !dom.moreMenuList.contains(e.target) && e.target !== dom.moreMenuBtn) {
-        dom.moreMenuList.hidden = true;
+        closeMoreMenu();
       }
     });
   }

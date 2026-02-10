@@ -366,7 +366,7 @@ body {
 
 .full-row.is-path { background: rgba(79, 138, 106, 0.08); border-radius: 10px; padding-left: 8px; }
 .full-row.is-dimmed { opacity: 0.4; }
-.full-toggle { border: 1px solid var(--border); background: #fff; width: 26px; height: 26px; border-radius: 8px; }
+.full-toggle { border: 1px solid var(--border); background: #fff; width: 26px; height: 26px; border-radius: 8px; cursor: pointer; }
 
 .legend { margin-top: 16px; font-size: 12px; }
 .legend h4 { margin: 0 0 6px; }
@@ -497,16 +497,29 @@ body {
 .actions-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; margin-top: 12px; }
 
 @media (max-width: 960px) {
-  .main { grid-template-columns: 1fr; }
-  .insights { position: fixed; bottom: 0; left: 0; right: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; transform: translateY(80%); }
-  .insights.is-open { transform: translateY(0); }
-  .drawer { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; }
-  .toolbar { flex-direction: column; align-items: stretch; }
+  .main { grid-template-columns: 1fr; padding: 14px; }
+  .tree-area { padding: 14px; }
+  .toolbar { flex-direction: column; align-items: stretch; padding: 12px 14px; }
+  .toolbar-left { flex-direction: column; align-items: stretch; gap: 10px; }
   .toolbar-right { justify-content: flex-start; }
+  .segmented { width: 100%; justify-content: space-between; }
+  .search-box { width: 100%; }
+  .kbd-hint { display: none; }
   .mobile-only { display: inline-flex; }
   .menu { display: none; }
+  .person-card { min-width: 120px; }
+  .full-view { gap: 10px; }
+  .full-toolbar { position: static; top: auto; padding: 8px; gap: 8px; }
+  .full-controls { width: 100%; justify-content: flex-start; }
+  .full-control select { min-width: 120px; }
   .full-zoom { width: 100%; justify-content: flex-start; }
-  .full-tree-list { height: 55vh; }
+  .full-tree-list { height: 52vh; padding: 4px; }
+  .insights { position: fixed; bottom: 0; left: 0; right: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; transform: translateY(80%); max-height: 70vh; overflow: auto; padding-bottom: 22px; }
+  .insights.is-open { transform: translateY(0); }
+  .drawer { left: 12px; right: 12px; top: auto; bottom: 12px; width: auto; max-height: 80vh; overflow: hidden; }
+  .drawer-body { max-height: 44vh; overflow: auto; }
+  .actions-card { max-height: 85vh; overflow: auto; }
+  .search-overlay-card { max-height: 85vh; overflow: auto; }
 }
 
 @media (min-width: 961px) {
