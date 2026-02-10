@@ -1,62 +1,65 @@
-﻿
-/* KAMI Tree - Refactored Tree Renderer */
+
+/* KAMI Tree - Focus + Full View */
 (() => {
   "use strict";
 
-  const APP_VERSION = "2026-02-10.7";
-  const NODE_W = 170;
-  const NODE_H = 76;
-  const COL_GAP = 220;
-  const ROW_GAP = 110;
-  const PADDING = 60;
+  const APP_VERSION = "2026-02-10.8";
+  const MAX_SEARCH_RESULTS = 8;
+  const BASE_ROW_HEIGHT = 56;
 
   const dom = {
     app: document.getElementById("app"),
     toolbar: document.getElementById("toolbar"),
     treeArea: document.querySelector(".tree-area"),
-    treeViewport: document.getElementById("tree-viewport"),
-    treeStage: document.getElementById("tree-stage"),
-    treeCanvas: document.getElementById("tree-canvas"),
-    treeLines: document.getElementById("tree-lines"),
+    focusView: document.getElementById("focus-view"),
+    fullView: document.getElementById("full-view"),
+    fullList: document.getElementById("full-tree-list"),
+    fullListInner: document.getElementById("full-tree-inner"),
+    fullTopSpacer: document.getElementById("full-tree-top"),
+    fullBottomSpacer: document.getElementById("full-tree-bottom"),
+    filterRelation: document.getElementById("filter-relation"),
+    filterStatus: document.getElementById("filter-status"),
+    filterPhoto: document.getElementById("filter-photo"),
+    filterNote: document.getElementById("filter-note"),
+    branchOnlyBtn: document.getElementById("branch-only"),
+    expandAllBtn: document.getElementById("expand-all"),
+    collapseAllBtn: document.getElementById("collapse-all"),
+    zoomInBtn: document.getElementById("zoom-in"),
+    zoomOutBtn: document.getElementById("zoom-out"),
+    zoomResetBtn: document.getElementById("zoom-reset"),
+    viewFocusBtn: document.getElementById("view-focus"),
+    viewFullBtn: document.getElementById("view-full"),
+    resetBtn: document.getElementById("reset-view"),
+    centerBtn: document.getElementById("center-selected"),
+    toggleDebugBtn: document.getElementById("toggle-debug"),
     searchInput: document.getElementById("search-input"),
     searchResults: document.getElementById("search-results"),
     searchOverlay: document.getElementById("searchOverlay"),
     searchOverlayInput: document.getElementById("search-overlay-input"),
     searchOverlayResults: document.getElementById("search-overlay-results"),
     searchOverlayClose: document.getElementById("search-overlay-close"),
+    moreMenuBtn: document.getElementById("more-menu"),
+    moreMenuList: document.getElementById("more-menu-list"),
+    exportPngBtn: document.getElementById("export-png"),
+    exportPdfBtn: document.getElementById("export-pdf"),
+    mobileActionsBtn: document.getElementById("mobile-actions"),
     actionsSheet: document.getElementById("actionsSheet"),
     actionsClose: document.getElementById("actions-close"),
     actionFocus: document.getElementById("action-focus"),
     actionFull: document.getElementById("action-full"),
-    actionFit: document.getElementById("action-fit"),
-    actionZoomOut: document.getElementById("action-zoom-out"),
-    actionZoomIn: document.getElementById("action-zoom-in"),
     actionCenter: document.getElementById("action-center"),
     actionReset: document.getElementById("action-reset"),
     actionExportPng: document.getElementById("action-export-png"),
     actionExportPdf: document.getElementById("action-export-pdf"),
     actionDebug: document.getElementById("action-debug"),
     actionInsights: document.getElementById("action-insights"),
-    viewFocusBtn: document.getElementById("view-focus"),
-    viewFullBtn: document.getElementById("view-full"),
-    fitBtn: document.getElementById("fit-view"),
-    centerBtn: document.getElementById("center-selected"),
-    resetBtn: document.getElementById("reset-view"),
-    zoomInBtn: document.getElementById("zoom-in"),
-    zoomOutBtn: document.getElementById("zoom-out"),
-    zoomResetBtn: document.getElementById("zoom-reset"),
-    moreMenuBtn: document.getElementById("more-menu"),
-    moreMenuList: document.getElementById("more-menu-list"),
-    exportPngBtn: document.getElementById("export-png"),
-    exportPdfBtn: document.getElementById("export-pdf"),
-    toggleDebugBtn: document.getElementById("toggle-debug"),
-    mobileActionsBtn: document.getElementById("mobile-actions"),
     insightsBtn: document.getElementById("toggle-insights"),
     insightsPanel: document.getElementById("insights"),
     statsPeople: document.getElementById("stat-people"),
     statsCouples: document.getElementById("stat-couples"),
     statsMale: document.getElementById("stat-male"),
     statsFemale: document.getElementById("stat-female"),
+    statsUnknown: document.getElementById("stat-unknown"),
     statsCucu: document.getElementById("stat-cucu"),
     statsCicit: document.getElementById("stat-cicit"),
     statsUpcomingName: document.getElementById("stat-upcoming-name"),
@@ -67,6 +70,7 @@
     drawerTitle: document.getElementById("drawer-title"),
     drawerCta: document.getElementById("drawer-cta"),
     drawerFocus: document.getElementById("drawer-focus"),
+    drawerLink: document.getElementById("drawer-link"),
     status: document.getElementById("tree-status"),
     toast: document.getElementById("toast"),
     backdrop: document.getElementById("backdrop"),
@@ -86,13 +90,23 @@
     nameCounts: new Map(),
     selectedId: "",
     viewMode: "focus",
-    focusAncDepth: 2,
-    focusDescDepth: 2,
-    treeScale: 1,
-    nodePositions: new Map(),
-    pathHighlight: new Set(),
+    focusAncDepth: 1,
+    focusDescDepth: 1,
+    focusShowAllChildren: false,
+    expandedIds: new Set(),
+    branchOnly: false,
+    listCache: [],
+    listRowHeight: BASE_ROW_HEIGHT,
+    listOverscan: 8,
+    fullScale: 1,
     debugMode: false,
-    searchIndex: -1
+    searchIndex: -1,
+    filters: {
+      relation: "",
+      status: "",
+      hasPhoto: false,
+      hasNote: false
+    }
   };
 
   const isMobile = () => window.matchMedia("(max-width: 960px)").matches;
@@ -136,27 +150,42 @@
     showBackdrop(false);
   }
 
-  function uniqueById(list) {
-    const seen = new Set();
-    return list.filter((p) => {
-      if (!p || !p.id) return false;
-      if (seen.has(p.id)) return false;
-      seen.add(p.id);
-      return true;
-    });
+  function sanitizeString(value) {
+    if (value === null || value === undefined) return null;
+    const str = String(value).trim();
+    return str.length ? str : null;
+  }
+
+  function normalizePerson(person) {
+    const normalized = { ...person };
+    normalized.id = sanitizeString(person.id);
+    normalized.name = sanitizeString(person.name) || "(Tanpa nama)";
+    normalized.relation = sanitizeString(person.relation);
+    normalized.note = sanitizeString(person.note);
+    normalized.photo = sanitizeString(person.photo);
+    normalized.birth = sanitizeString(person.birth);
+    normalized.death = sanitizeString(person.death);
+    normalized.gender = sanitizeString(person.gender);
+    normalized.gender = inferGender(normalized);
+    return normalized;
+  }
+
+  function normalizeUnion(union) {
+    return {
+      ...union,
+      id: sanitizeString(union.id),
+      partner1: sanitizeString(union.partner1),
+      partner2: sanitizeString(union.partner2),
+      children: Array.isArray(union.children) ? union.children.map(sanitizeString).filter(Boolean) : []
+    };
   }
 
   function inferGender(person) {
-    const name = String(person?.name || "").toLowerCase();
-    const relation = String(person?.relation || "").toLowerCase();
-    if (name.includes(" binti ") || relation.includes("isteri")) return "female";
-    if (name.includes(" bin ") || relation.includes("suami")) return "male";
+    if (person.gender === "male" || person.gender === "female") return person.gender;
+    const name = String(person.name || "");
+    if (name.includes(" Bin ") || name.toLowerCase().includes(" bin ")) return "male";
+    if (name.includes(" Binti ") || name.toLowerCase().includes(" binti ")) return "female";
     return "unknown";
-  }
-
-  function getGender(person) {
-    if (person?.gender === "male" || person?.gender === "female") return person.gender;
-    return inferGender(person);
   }
 
   function formatName(person) {
@@ -168,36 +197,14 @@
     return String(value).slice(0, 4);
   }
 
-  function getMetaText(person) {
-    const year = formatYear(person?.birth);
-    const needsId = state.nameCounts.get(formatName(person)) > 1;
-    const idText = needsId || state.debugMode ? `@${person.id}` : "";
-    return [year, idText].filter(Boolean).join(" · ");
-  }
-
-  function validateData(data) {
-    const errors = [];
-    if (!data || !Array.isArray(data.people) || !Array.isArray(data.unions)) {
-      errors.push("Invalid data.json schema (expected people[] and unions[])." +
-        " Pastikan struktur mempunyai 'people' dan 'unions'.");
-      throw new Error(errors.join("\n"));
-    }
-    const ids = new Set();
-    data.people.forEach((p, idx) => {
-      if (!p.id) errors.push(`Person index ${idx} missing id.`);
-      if (p.id && ids.has(p.id)) errors.push(`Duplicate person id: ${p.id}`);
-      if (p.id) ids.add(p.id);
+  function uniqueById(list) {
+    const seen = new Set();
+    return list.filter((p) => {
+      if (!p || !p.id) return false;
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
     });
-    data.unions.forEach((u, idx) => {
-      if (!u.id) errors.push(`Union index ${idx} missing id.`);
-      [u.partner1, u.partner2].forEach((pid) => {
-        if (pid && !ids.has(pid)) errors.push(`Union ${u.id || idx} refers missing partner: ${pid}`);
-      });
-      (u.children || []).forEach((cid) => {
-        if (!ids.has(cid)) errors.push(`Union ${u.id || idx} refers missing child: ${cid}`);
-      });
-    });
-    if (errors.length) throw new Error(errors.join("\n"));
   }
 
   function buildIndex(data) {
@@ -210,8 +217,7 @@
 
     data.people.forEach((p) => {
       state.peopleById.set(p.id, p);
-      const name = formatName(p);
-      state.nameCounts.set(name, (state.nameCounts.get(name) || 0) + 1);
+      state.nameCounts.set(p.name, (state.nameCounts.get(p.name) || 0) + 1);
     });
 
     state.unions.forEach((u) => {
@@ -233,6 +239,19 @@
       });
     });
   }
+
+  function warnValidation(data) {
+    const ids = new Set(data.people.map((p) => p.id));
+    data.unions.forEach((u) => {
+      [u.partner1, u.partner2].forEach((pid) => {
+        if (pid && !ids.has(pid)) console.warn(`[DATA] Union ${u.id} missing partner ${pid}`);
+      });
+      (u.children || []).forEach((cid) => {
+        if (!ids.has(cid)) console.warn(`[DATA] Union ${u.id} missing child ${cid}`);
+      });
+    });
+  }
+
   function getParents(id) {
     const refs = state.parentsByChild.get(id) || [];
     const parents = [];
@@ -254,304 +273,474 @@
     return uniqueById(Array.from(set).map((pid) => state.peopleById.get(pid)).filter(Boolean));
   }
 
-  function getBreadcrumbPath(id) {
-    const chain = [];
-    let cursor = id;
-    let guard = 0;
-    while (cursor && guard < 12) {
-      guard += 1;
-      chain.push(cursor);
-      const parents = getParents(cursor);
-      if (!parents.length) break;
-      cursor = parents[0].id;
-    }
-    return chain.reverse();
-  }
-
-  function highlightPath(id) {
-    state.pathHighlight = new Set(getBreadcrumbPath(id));
-  }
-
-  function buildFocusVisibleIds(id, ancDepth, descDepth) {
-    const ids = new Set();
-    const add = (pid) => {
-      if (pid && state.peopleById.has(pid)) ids.add(pid);
-    };
-
-    add(id);
+  function getAncestors(id, depth) {
+    const levels = [];
     let current = [id];
-    for (let d = 0; d < ancDepth; d += 1) {
+    for (let d = 0; d < depth; d += 1) {
       const next = [];
       current.forEach((cid) => {
         getParents(cid).forEach((p) => {
-          add(p.id);
-          next.push(p.id);
+          if (!next.includes(p.id)) next.push(p.id);
         });
       });
       if (!next.length) break;
+      levels.push(next.map((pid) => state.peopleById.get(pid)).filter(Boolean));
       current = next;
     }
+    return levels;
+  }
 
-    current = [id];
-    for (let d = 0; d < descDepth; d += 1) {
+  function getDescendants(id, depth) {
+    const levels = [];
+    let current = [id];
+    for (let d = 0; d < depth; d += 1) {
       const next = [];
       current.forEach((cid) => {
         getChildren(cid).forEach((c) => {
-          add(c.id);
-          next.push(c.id);
+          if (!next.includes(c.id)) next.push(c.id);
         });
       });
       if (!next.length) break;
+      levels.push(next.map((pid) => state.peopleById.get(pid)).filter(Boolean));
       current = next;
     }
-
-    Array.from(ids).forEach((pid) => {
-      getSpouses(pid).forEach((s) => add(s.id));
-    });
-
-    return ids;
+    return levels;
   }
 
-  function getVisibleIds() {
-    if (state.viewMode === "full") {
-      return new Set(state.data.people.map((p) => p.id));
-    }
-    if (!state.selectedId) return new Set();
-    return buildFocusVisibleIds(state.selectedId, state.focusAncDepth, state.focusDescDepth);
+  function getMetaText(person) {
+    const year = formatYear(person?.birth);
+    const needsId = state.nameCounts.get(person?.name) > 1;
+    const idText = needsId || state.debugMode ? `@${person.id}` : "";
+    return [year, idText].filter(Boolean).join(" · ");
   }
 
-  function comparePeople(a, b) {
-    const ay = formatYear(a?.birth) || "9999";
-    const by = formatYear(b?.birth) || "9999";
-    if (ay !== by) return ay.localeCompare(by);
-    return formatName(a).localeCompare(formatName(b));
+  function formatGender(person) {
+    return person.gender || "unknown";
   }
 
-  function buildDepthMap(visibleIds) {
-    const depth = new Map();
-    if (state.viewMode === "full") {
-      const roots = [];
-      visibleIds.forEach((id) => {
-        if (!state.parentsByChild.has(id)) roots.push(id);
-      });
-      if (!roots.length && visibleIds.size) roots.push(Array.from(visibleIds)[0]);
-      const queue = [...roots];
-      roots.forEach((id) => depth.set(id, 0));
-      let guard = 0;
-      while (queue.length && guard < 10000) {
-        guard += 1;
-        const id = queue.shift();
-        const d = depth.get(id) || 0;
-        getChildren(id).forEach((child) => {
-          if (!visibleIds.has(child.id)) return;
-          const next = d + 1;
-          if (!depth.has(child.id) || depth.get(child.id) < next) {
-            depth.set(child.id, next);
-            queue.push(child.id);
-          }
-        });
-      }
-      return depth;
-    }
-
-    if (!state.selectedId) return depth;
-    const queue = [state.selectedId];
-    depth.set(state.selectedId, 0);
-    let guard = 0;
-    while (queue.length && guard < 10000) {
-      guard += 1;
-      const id = queue.shift();
-      const d = depth.get(id) || 0;
-      getParents(id).forEach((p) => {
-        if (!visibleIds.has(p.id)) return;
-        if (!depth.has(p.id)) {
-          depth.set(p.id, d - 1);
-          queue.push(p.id);
-        }
-      });
-      getChildren(id).forEach((c) => {
-        if (!visibleIds.has(c.id)) return;
-        if (!depth.has(c.id)) {
-          depth.set(c.id, d + 1);
-          queue.push(c.id);
-        }
-      });
-      getSpouses(id).forEach((s) => {
-        if (!visibleIds.has(s.id)) return;
-        if (!depth.has(s.id)) {
-          depth.set(s.id, d);
-          queue.push(s.id);
-        }
-      });
-    }
-    return depth;
+  function renderPersonCard(person, { compact = false, highlight = false } = {}) {
+    const card = document.createElement("button");
+    card.className = `person-card${compact ? " compact" : ""}${highlight ? " is-selected" : ""}`;
+    card.type = "button";
+    card.dataset.personId = person.id;
+    card.dataset.gender = formatGender(person);
+    const relationChip = person.relation ? `<span class="person-chip">${person.relation}</span>` : "";
+    const meta = getMetaText(person);
+    card.innerHTML = `
+      ${relationChip}
+      <span class="person-name">${formatName(person)}</span>
+      <span class="person-meta">${meta || "-"}</span>
+    `;
+    card.setAttribute("aria-label", `${formatName(person)}${person.relation ? `, ${person.relation}` : ""}`);
+    card.addEventListener("click", () => setSelected(person.id));
+    return card;
   }
 
-  function buildTreeLayout(visibleIds) {
-    const depthMap = buildDepthMap(visibleIds);
-    const groups = new Map();
-    let minDepth = 0;
-    let maxDepth = 0;
+  function renderFocusView() {
+    if (!dom.focusView) return;
+    dom.focusView.innerHTML = "";
 
-    visibleIds.forEach((id) => {
-      const d = depthMap.has(id) ? depthMap.get(id) : 0;
-      minDepth = Math.min(minDepth, d);
-      maxDepth = Math.max(maxDepth, d);
-      if (!groups.has(d)) groups.set(d, []);
-      groups.get(d).push(id);
-    });
-
-    const nodes = [];
-    const positions = new Map();
-    const depths = Array.from(groups.keys()).sort((a, b) => a - b);
-    depths.forEach((depth, colIndex) => {
-      const ids = groups.get(depth)
-        .map((id) => state.peopleById.get(id))
-        .filter(Boolean)
-        .sort(comparePeople)
-        .map((p) => p.id);
-      ids.forEach((id, rowIndex) => {
-        const x = PADDING + colIndex * COL_GAP;
-        const y = PADDING + rowIndex * ROW_GAP;
-        nodes.push({ id, x, y, depth });
-        positions.set(id, { x, y });
-      });
-    });
-
-    const width = PADDING * 2 + (depths.length ? (depths.length - 1) * COL_GAP + NODE_W : NODE_W);
-    const maxRows = Math.max(1, ...depths.map((d) => groups.get(d).length));
-    const height = PADDING * 2 + (maxRows - 1) * ROW_GAP + NODE_H;
-
-    const links = [];
-    const linkSet = new Set();
-    visibleIds.forEach((id) => {
-      getParents(id).forEach((p) => {
-        if (!visibleIds.has(p.id)) return;
-        const key = `${p.id}-${id}`;
-        if (linkSet.has(key)) return;
-        linkSet.add(key);
-        links.push({ from: p.id, to: id });
-      });
-    });
-
-    return { nodes, links, width, height, positions };
-  }
-
-  function renderTree() {
-    if (!dom.treeCanvas || !dom.treeLines || !dom.treeStage) return;
-    const visibleIds = getVisibleIds();
-    const { nodes, links, width, height, positions } = buildTreeLayout(visibleIds);
-    state.nodePositions = positions;
-
-    dom.treeStage.style.width = `${width}px`;
-    dom.treeStage.style.height = `${height}px`;
-
-    dom.treeCanvas.innerHTML = "";
-    dom.treeLines.setAttribute("width", String(width));
-    dom.treeLines.setAttribute("height", String(height));
-    dom.treeLines.innerHTML = "";
-
-    const pathSet = state.pathHighlight;
-    nodes.forEach((node) => {
-      const person = state.peopleById.get(node.id);
-      if (!person) return;
-      const card = document.createElement("button");
-      card.type = "button";
-      card.className = "tree-node";
-      if (node.id === state.selectedId) card.classList.add("is-selected");
-      if (pathSet.size) {
-        if (pathSet.has(node.id)) card.classList.add("is-path");
-        else card.classList.add("is-dimmed");
-      }
-      card.dataset.personId = node.id;
-      card.dataset.gender = getGender(person);
-      card.style.transform = `translate(${node.x}px, ${node.y}px)`;
-
-      const chip = person.relation ? `<span class="node-chip">${person.relation}</span>` : "";
-      const meta = getMetaText(person);
-      card.innerHTML = `
-        ${chip}
-        <span class="node-name">${formatName(person)}</span>
-        <span class="node-meta">${meta || "-"}</span>
+    if (!state.selectedId) {
+      dom.focusView.innerHTML = `
+        <div class="empty-state">
+          <h3>Mulakan dengan carian</h3>
+          <p>Cari nama ahli keluarga untuk fokus dan lihat ibu bapa, pasangan, dan anak.</p>
+          <div class="empty-actions">
+            <button class="btn small" id="empty-self">Pilih Self</button>
+            <button class="btn ghost small" id="empty-full">Lihat Full Tree</button>
+          </div>
+        </div>
       `;
-      card.addEventListener("click", () => setSelected(node.id));
-      dom.treeCanvas.appendChild(card);
+      const selfBtn = document.getElementById("empty-self");
+      const fullBtn = document.getElementById("empty-full");
+      if (selfBtn && state.data?.selfId) selfBtn.addEventListener("click", () => setSelected(state.data.selfId));
+      if (fullBtn) fullBtn.addEventListener("click", () => updateViewMode("full"));
+      return;
+    }
+
+    const centerPerson = state.peopleById.get(state.selectedId);
+    const parents = getParents(centerPerson.id);
+    const spouses = getSpouses(centerPerson.id);
+    const children = getChildren(centerPerson.id);
+
+    const ancestorsLevels = getAncestors(centerPerson.id, state.focusAncDepth);
+    const descLevels = getDescendants(centerPerson.id, state.focusDescDepth);
+
+    const focusShell = document.createElement("div");
+    focusShell.className = "focus-shell";
+
+    const ancestors = document.createElement("div");
+    ancestors.className = "focus-block";
+    ancestors.innerHTML = `<div class="focus-block-head"><span>Parents (${parents.length})</span><button class="btn ghost small" type="button">Expand Ancestors</button></div>`;
+    const ancBtn = ancestors.querySelector("button");
+    ancBtn.addEventListener("click", () => {
+      state.focusAncDepth = Math.min(state.focusAncDepth + 1, 4);
+      renderFocusView();
+      showToast("Tambah generasi ibu bapa");
     });
 
-    links.forEach((link) => {
-      const from = positions.get(link.from);
-      const to = positions.get(link.to);
-      if (!from || !to) return;
-      const x1 = from.x + NODE_W / 2;
-      const y1 = from.y + NODE_H;
-      const x2 = to.x + NODE_W / 2;
-      const y2 = to.y;
-      const midY = (y1 + y2) / 2;
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      path.setAttribute("d", `M ${x1} ${y1} V ${midY} H ${x2} V ${y2}`);
-      path.setAttribute("stroke", "rgba(31, 42, 36, 0.25)");
-      path.setAttribute("stroke-width", "1.6");
-      path.setAttribute("fill", "none");
-      if (pathSet.has(link.from) && pathSet.has(link.to)) {
-        path.setAttribute("stroke", "rgba(79, 138, 106, 0.6)");
-        path.setAttribute("stroke-width", "2");
+    const parentsRow = document.createElement("div");
+    parentsRow.className = "focus-row";
+    if (parents.length === 0) {
+      parentsRow.textContent = "Tiada data ibu bapa.";
+    } else {
+      parents.forEach((p) => parentsRow.appendChild(renderPersonCard(p)));
+    }
+    ancestors.appendChild(parentsRow);
+
+    ancestorsLevels.forEach((level) => {
+      const row = document.createElement("div");
+      row.className = "focus-row depth";
+      level.forEach((p) => row.appendChild(renderPersonCard(p, { compact: true })));
+      ancestors.appendChild(row);
+    });
+
+    const center = document.createElement("div");
+    center.className = "focus-center";
+    center.appendChild(renderPersonCard(centerPerson, { highlight: true }));
+
+    const spouseBlock = document.createElement("div");
+    spouseBlock.className = "focus-block";
+    spouseBlock.innerHTML = `<div class="focus-block-head"><span>Spouses (${spouses.length})</span></div>`;
+    const spousesRow = document.createElement("div");
+    spousesRow.className = "focus-row";
+    if (spouses.length === 0) {
+      spousesRow.textContent = "Tiada data pasangan.";
+    } else {
+      spouses.forEach((s) => spousesRow.appendChild(renderPersonCard(s)));
+    }
+    spouseBlock.appendChild(spousesRow);
+
+    const childrenBlock = document.createElement("div");
+    childrenBlock.className = "focus-block";
+    const childCount = children.length;
+    const childHead = document.createElement("div");
+    childHead.className = "focus-block-head";
+    childHead.innerHTML = `<span>Children (${childCount})</span>`;
+    if (childCount > 4 && !state.focusShowAllChildren) {
+      const moreBtn = document.createElement("button");
+      moreBtn.className = "btn ghost small";
+      moreBtn.type = "button";
+      moreBtn.textContent = `+${childCount - 4} lagi`;
+      moreBtn.addEventListener("click", () => {
+        state.focusShowAllChildren = true;
+        renderFocusView();
+      });
+      childHead.appendChild(moreBtn);
+    }
+    const childExpand = document.createElement("button");
+    childExpand.className = "btn ghost small";
+    childExpand.type = "button";
+    childExpand.textContent = "Expand Descendants";
+    childExpand.addEventListener("click", () => {
+      state.focusDescDepth = Math.min(state.focusDescDepth + 1, 4);
+      renderFocusView();
+      showToast("Tambah generasi anak");
+    });
+    childHead.appendChild(childExpand);
+    childrenBlock.appendChild(childHead);
+
+    const childrenRow = document.createElement("div");
+    childrenRow.className = "focus-row";
+    const childList = state.focusShowAllChildren ? children : children.slice(0, 4);
+    if (children.length === 0) {
+      childrenRow.textContent = "Tiada data anak.";
+    } else {
+      childList.forEach((c) => childrenRow.appendChild(renderPersonCard(c)));
+    }
+    childrenBlock.appendChild(childrenRow);
+
+    descLevels.forEach((level) => {
+      const row = document.createElement("div");
+      row.className = "focus-row depth";
+      level.forEach((p) => row.appendChild(renderPersonCard(p, { compact: true })));
+      childrenBlock.appendChild(row);
+    });
+
+    focusShell.appendChild(ancestors);
+    focusShell.appendChild(center);
+    focusShell.appendChild(spouseBlock);
+    focusShell.appendChild(childrenBlock);
+
+    dom.focusView.appendChild(focusShell);
+  }
+  function applyFilters(list) {
+    return list.filter((item) => {
+      const person = state.peopleById.get(item.id);
+      if (!person) return false;
+      if (state.filters.relation) {
+        const relation = (person.relation || "").toLowerCase();
+        if (!relation.includes(state.filters.relation)) return false;
       }
-      dom.treeLines.appendChild(path);
+      if (state.filters.status === "alive" && person.death) return false;
+      if (state.filters.status === "deceased" && !person.death) return false;
+      if (state.filters.hasPhoto && !person.photo) return false;
+      if (state.filters.hasNote && !person.note) return false;
+      return true;
+    });
+  }
+
+  function buildFullList() {
+    const rootId = state.branchOnly && state.selectedId ? state.selectedId : (state.data.selfId || state.data.people?.[0]?.id);
+    if (!rootId) return [];
+    const list = [];
+    const visit = (id, depth) => {
+      if (!state.peopleById.has(id)) return;
+      list.push({ id, depth });
+      if (!state.expandedIds.has(id)) return;
+      const children = getChildren(id);
+      children.forEach((child) => visit(child.id, depth + 1));
+    };
+    visit(rootId, 1);
+    return applyFilters(list);
+  }
+
+  function renderFullTree() {
+    if (!dom.fullView || !dom.fullList || !dom.fullListInner) return;
+    if (state.viewMode !== "full") {
+      dom.fullView.hidden = true;
+      return;
+    }
+    dom.fullView.hidden = false;
+
+    state.listCache = buildFullList();
+    const total = state.listCache.length;
+
+    const useVirtual = state.fullScale === 1;
+    const containerHeight = dom.fullList.clientHeight || 400;
+    const rowHeight = state.listRowHeight;
+
+    let startIndex = 0;
+    let endIndex = total;
+    if (useVirtual) {
+      startIndex = Math.max(0, Math.floor(dom.fullList.scrollTop / rowHeight) - state.listOverscan);
+      endIndex = Math.min(total, Math.ceil((dom.fullList.scrollTop + containerHeight) / rowHeight) + state.listOverscan);
+    }
+
+    const slice = state.listCache.slice(startIndex, endIndex);
+    dom.fullTopSpacer.style.height = useVirtual ? `${startIndex * rowHeight}px` : "0px";
+    dom.fullBottomSpacer.style.height = useVirtual ? `${(total - endIndex) * rowHeight}px` : "0px";
+    dom.fullListInner.innerHTML = "";
+
+    slice.forEach((item) => {
+      const person = state.peopleById.get(item.id);
+      if (!person) return;
+      const row = document.createElement("div");
+      row.className = "full-row";
+      row.style.paddingLeft = `${(item.depth - 1) * 24}px`;
+      row.dataset.personId = item.id;
+
+      const toggle = document.createElement("button");
+      toggle.className = "full-toggle";
+      toggle.type = "button";
+      const children = getChildren(item.id);
+      if (children.length === 0) {
+        toggle.textContent = "•";
+        toggle.disabled = true;
+      } else {
+        toggle.textContent = state.expandedIds.has(item.id) ? "-" : "+";
+      }
+      toggle.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (children.length === 0) return;
+        if (state.expandedIds.has(item.id)) {
+          state.expandedIds.delete(item.id);
+        } else {
+          state.expandedIds.add(item.id);
+        }
+        renderFullTree();
+      });
+
+      row.appendChild(toggle);
+      row.appendChild(renderPersonCard(person, { compact: true, highlight: state.selectedId === item.id }));
+      row.addEventListener("click", () => setSelected(item.id));
+      dom.fullListInner.appendChild(row);
     });
 
-    updateTreeStatus(visibleIds.size);
+    dom.fullListInner.style.transform = `scale(${state.fullScale})`;
   }
 
-  function updateTreeStatus(count) {
-    const label = state.viewMode === "full" ? "Full Tree" : "Focus View";
-    setStatus(`${label}: ${count} node`, false);
+  function updateViewMode(next) {
+    state.viewMode = next === "full" ? "full" : "focus";
+    if (dom.viewFocusBtn) dom.viewFocusBtn.classList.toggle("is-active", state.viewMode === "focus");
+    if (dom.viewFullBtn) dom.viewFullBtn.classList.toggle("is-active", state.viewMode === "full");
+    if (dom.focusView) dom.focusView.hidden = state.viewMode !== "focus";
+    if (dom.fullView) dom.fullView.hidden = state.viewMode !== "full";
+    renderFocusView();
+    renderFullTree();
   }
 
-  function setTreeScale(scale) {
-    state.treeScale = Math.min(1.6, Math.max(0.6, scale));
-    if (dom.treeStage) dom.treeStage.style.transform = `scale(${state.treeScale})`;
+  function computeAge(birth, death) {
+    if (!birth) return null;
+    const b = new Date(birth);
+    if (Number.isNaN(b.getTime())) return null;
+    const end = death ? new Date(death) : new Date();
+    if (Number.isNaN(end.getTime())) return null;
+    let age = end.getFullYear() - b.getFullYear();
+    const m = end.getMonth() - b.getMonth();
+    if (m < 0 || (m === 0 && end.getDate() < b.getDate())) age -= 1;
+    return age;
   }
 
-  function centerOnNode(id, animate = true) {
-    if (!dom.treeViewport) return;
-    const pos = state.nodePositions.get(id);
-    if (!pos) return;
-    const viewport = dom.treeViewport;
-    const scale = state.treeScale || 1;
-    const targetX = pos.x * scale + NODE_W * scale / 2 - viewport.clientWidth / 2;
-    const targetY = pos.y * scale + NODE_H * scale / 2 - viewport.clientHeight / 2;
-    viewport.scrollTo({ left: targetX, top: targetY, behavior: animate ? "smooth" : "auto" });
+  function formatDate(value) {
+    if (!value) return "-";
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString("ms-MY", { day: "2-digit", month: "short", year: "numeric" });
   }
 
-  function fitToScreen() {
-    if (!dom.treeViewport || !state.nodePositions.size) return;
-    const viewport = dom.treeViewport;
-    let minX = Infinity;
-    let minY = Infinity;
-    let maxX = -Infinity;
-    let maxY = -Infinity;
-    state.nodePositions.forEach((pos) => {
-      minX = Math.min(minX, pos.x);
-      minY = Math.min(minY, pos.y);
-      maxX = Math.max(maxX, pos.x + NODE_W);
-      maxY = Math.max(maxY, pos.y + NODE_H);
+  function getUpcomingBirthday() {
+    const today = new Date();
+    const candidates = state.data.people
+      .filter((p) => p.birth)
+      .map((p) => {
+        const birth = new Date(p.birth);
+        if (Number.isNaN(birth.getTime())) return null;
+        const next = new Date(today.getFullYear(), birth.getMonth(), birth.getDate());
+        if (next < today) next.setFullYear(today.getFullYear() + 1);
+        return { person: p, date: next };
+      })
+      .filter(Boolean);
+    if (!candidates.length) return null;
+    candidates.sort((a, b) => a.date - b.date);
+    return candidates[0];
+  }
+
+  function updateStats() {
+    const people = state.data?.people || [];
+    const unions = state.data?.unions || [];
+    if (dom.statsPeople) dom.statsPeople.textContent = String(people.length || 0);
+    if (dom.statsCouples) dom.statsCouples.textContent = String(unions.length || 0);
+    let male = 0;
+    let female = 0;
+    let unknown = 0;
+    let cucu = 0;
+    let cicit = 0;
+
+    people.forEach((p) => {
+      if (p.gender === "male") male += 1;
+      else if (p.gender === "female") female += 1;
+      else unknown += 1;
+
+      const relation = (p.relation || "").toLowerCase();
+      if (relation.includes("cucu")) cucu += 1;
+      if (relation.includes("cicit")) cicit += 1;
     });
-    const width = maxX - minX + PADDING;
-    const height = maxY - minY + PADDING;
-    const scaleX = viewport.clientWidth / width;
-    const scaleY = viewport.clientHeight / height;
-    const scale = Math.min(1.4, Math.max(0.6, Math.min(scaleX, scaleY)));
-    setTreeScale(scale);
-    viewport.scrollTo({ left: 0, top: 0, behavior: "smooth" });
+
+    if (dom.statsMale) dom.statsMale.textContent = String(male);
+    if (dom.statsFemale) dom.statsFemale.textContent = String(female);
+    if (dom.statsUnknown) dom.statsUnknown.textContent = String(unknown);
+    if (dom.statsCucu) dom.statsCucu.textContent = String(cucu);
+    if (dom.statsCicit) dom.statsCicit.textContent = String(cicit);
+
+    const upcoming = getUpcomingBirthday();
+    if (upcoming) {
+      const ageNext = computeAge(upcoming.person.birth, null) + 1;
+      if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = formatName(upcoming.person);
+      if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = `${formatDate(upcoming.date)} · ${ageNext} tahun`;
+    } else {
+      if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = "-";
+      if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = "-";
+    }
+  }
+
+  function renderRelationChips(list) {
+    if (!list.length) return "-";
+    return list
+      .map((p) => {
+        const meta = getMetaText(p);
+        const label = meta ? `${formatName(p)} (${meta})` : formatName(p);
+        return `<button class="chip" data-id="${p.id}">${label}</button>`;
+      })
+      .join(" ");
+  }
+
+  function renderDrawer(id) {
+    if (!dom.drawer || !dom.drawerBody) return;
+    const person = state.peopleById.get(id);
+    if (!person) return;
+
+    const age = computeAge(person.birth, person.death);
+    const ageLabel = age !== null ? `${age} tahun` : "-";
+    const genderLabel = person.gender === "male" ? "Lelaki" : person.gender === "female" ? "Perempuan" : "Tidak diketahui";
+
+    dom.drawerTitle.textContent = formatName(person);
+    dom.drawerBody.innerHTML = `
+      ${person.photo ? `<img class="drawer-photo" src="${person.photo}" alt="${formatName(person)}" />` : ""}
+      <div class="drawer-meta">
+        <span>${genderLabel}</span>
+        <span>${person.relation || "-"}</span>
+        <span>Umur: ${ageLabel}</span>
+      </div>
+      <div class="drawer-section">
+        <strong>Tarikh Lahir</strong>
+        <div>${formatDate(person.birth)}</div>
+      </div>
+      <div class="drawer-section">
+        <strong>Tarikh Meninggal</strong>
+        <div>${person.death ? formatDate(person.death) : "-"}</div>
+      </div>
+      ${person.note ? `<div class="drawer-note">${person.note}</div>` : ""}
+      <div class="drawer-section">
+        <strong>Parents</strong>
+        <div class="drawer-row">${renderRelationChips(getParents(id))}</div>
+      </div>
+      <div class="drawer-section">
+        <strong>Spouses</strong>
+        <div class="drawer-row">${renderRelationChips(getSpouses(id))}</div>
+      </div>
+      <div class="drawer-section">
+        <strong>Children</strong>
+        <div class="drawer-row">${renderRelationChips(getChildren(id))}</div>
+      </div>
+    `;
+
+    dom.drawer.classList.add("is-open");
+    dom.drawer.setAttribute("aria-hidden", "false");
+    showBackdrop(true);
+
+    dom.drawerBody.querySelectorAll("button.chip").forEach((chip) => {
+      chip.addEventListener("click", () => setSelected(chip.dataset.id));
+    });
+
+    if (dom.drawerCta) {
+      dom.drawerCta.onclick = () => {
+        state.branchOnly = true;
+        if (dom.branchOnlyBtn) dom.branchOnlyBtn.classList.add("is-active");
+        updateViewMode("full");
+        renderFullTree();
+      };
+    }
+
+    if (dom.drawerFocus) {
+      dom.drawerFocus.onclick = () => {
+        updateViewMode("focus");
+      };
+    }
+
+    if (dom.drawerLink) {
+      dom.drawerLink.onclick = () => {
+        const link = `${window.location.origin}${window.location.pathname}#${person.id}`;
+        navigator.clipboard?.writeText(link);
+        showToast("Link disalin");
+      };
+    }
+  }
+
+  function closeDrawer() {
+    if (!dom.drawer) return;
+    dom.drawer.classList.remove("is-open");
+    dom.drawer.setAttribute("aria-hidden", "true");
+    showBackdrop(false);
   }
 
   function setSelected(id, options = {}) {
     if (!id || !state.peopleById.has(id)) return;
     state.selectedId = id;
-    highlightPath(id);
-    renderTree();
-    openDrawer(id);
-    centerOnNode(id, !options.silent);
+    history.replaceState(null, "", `#${id}`);
+    renderFocusView();
+    renderFullTree();
+    renderDrawer(id);
     if (options.fromSearch) showToast("Fokus pada nama dipilih");
   }
   function renderSearchResults(matches, query, target) {
@@ -573,7 +762,7 @@
       return;
     }
 
-    matches.slice(0, 8).forEach((p, idx) => {
+    matches.slice(0, MAX_SEARCH_RESULTS).forEach((p, idx) => {
       const item = document.createElement("div");
       item.className = "search-item";
       item.dataset.index = String(idx);
@@ -612,7 +801,7 @@
       });
       resultsEl.appendChild(item);
     });
-    resultsEl.dataset.count = String(Math.min(matches.length, 8));
+    resultsEl.dataset.count = String(Math.min(matches.length, MAX_SEARCH_RESULTS));
     resultsEl.classList.add("is-open");
   }
 
@@ -681,7 +870,10 @@
   }
 
   async function exportToPng() {
-    if (!dom.treeArea || !window.html2canvas) return;
+    if (!dom.treeArea || !window.html2canvas) {
+      showToast("Export PNG belum tersedia");
+      return;
+    }
     const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
     const link = document.createElement("a");
     link.href = canvas.toDataURL("image/png");
@@ -690,7 +882,10 @@
   }
 
   async function exportToPdf() {
-    if (!dom.treeArea || !window.html2canvas || !window.jspdf) return;
+    if (!dom.treeArea || !window.html2canvas || !window.jspdf) {
+      showToast("Export PDF belum tersedia");
+      return;
+    }
     const canvas = await window.html2canvas(dom.treeArea, { backgroundColor: "#f6f5f0", scale: 2 });
     const imgData = canvas.toDataURL("image/png");
     const pdf = new window.jspdf.jsPDF({ orientation: "landscape", unit: "px", format: [canvas.width, canvas.height] });
@@ -707,109 +902,74 @@
     if (dom.actionExportPdf) dom.actionExportPdf.disabled = !canPdf;
   }
 
-  function updateStats() {
-    const people = state.data?.people || [];
-    const unions = state.data?.unions || [];
-    if (dom.statsPeople) dom.statsPeople.textContent = String(people.length || 0);
-    if (dom.statsCouples) dom.statsCouples.textContent = String(unions.length || 0);
-    let male = 0;
-    let female = 0;
-    people.forEach((p) => {
-      if (getGender(p) === "male") male += 1;
-      if (getGender(p) === "female") female += 1;
-    });
-    if (dom.statsMale) dom.statsMale.textContent = String(male);
-    if (dom.statsFemale) dom.statsFemale.textContent = String(female);
-    if (dom.statsCucu) dom.statsCucu.textContent = "-";
-    if (dom.statsCicit) dom.statsCicit.textContent = "-";
-    if (dom.statsUpcomingName) dom.statsUpcomingName.textContent = "-";
-    if (dom.statsUpcomingMeta) dom.statsUpcomingMeta.textContent = "-";
-  }
-
-  function renderRelationChips(list) {
-    if (!list.length) return "-";
-    return list
-      .map((p) => {
-        const meta = getMetaText(p);
-        const label = meta ? `${formatName(p)} (${meta})` : formatName(p);
-        return `<button class="chip" data-id="${p.id}">${label}</button>`;
-      })
-      .join(" ");
-  }
-
-  function openDrawer(id) {
-    if (!dom.drawer || !dom.drawerBody) return;
-    const person = state.peopleById.get(id);
-    if (!person) return;
-    dom.drawerTitle.textContent = formatName(person);
-    dom.drawerBody.innerHTML = `
-      <div class="drawer-meta">
-        <span>${getGender(person) === "female" ? "?" : getGender(person) === "male" ? "?" : "•"}</span>
-        <span>${person.birth ? String(person.birth).slice(0, 10) : "-"} ${person.death ? `– ${String(person.death).slice(0, 10)}` : ""}</span>
-      </div>
-      <div class="drawer-section">
-        <strong>Parents</strong>
-        <div class="drawer-row">${renderRelationChips(getParents(id))}</div>
-      </div>
-      <div class="drawer-section">
-        <strong>Spouses</strong>
-        <div class="drawer-row">${renderRelationChips(getSpouses(id))}</div>
-      </div>
-      <div class="drawer-section">
-        <strong>Children</strong>
-        <div class="drawer-row">${renderRelationChips(getChildren(id))}</div>
-      </div>
-    `;
-    dom.drawer.classList.add("is-open");
-    dom.drawer.setAttribute("aria-hidden", "false");
-    showBackdrop(true);
-    dom.drawerBody.querySelectorAll("button.chip").forEach((chip) => {
-      chip.addEventListener("click", () => setSelected(chip.dataset.id));
-    });
-    if (dom.drawerCta) {
-      dom.drawerCta.onclick = () => {
-        updateViewMode("full");
-        renderTree();
-      };
-    }
-    if (dom.drawerFocus) {
-      dom.drawerFocus.onclick = () => {
-        updateViewMode("focus");
-        renderTree();
-      };
-    }
-  }
-
-  function closeDrawer() {
-    if (!dom.drawer) return;
-    dom.drawer.classList.remove("is-open");
-    dom.drawer.setAttribute("aria-hidden", "true");
-    showBackdrop(false);
-  }
-
-  function updateViewMode(next) {
-    state.viewMode = next === "full" ? "full" : "focus";
-    if (dom.viewFocusBtn) dom.viewFocusBtn.classList.toggle("is-active", state.viewMode === "focus");
-    if (dom.viewFullBtn) dom.viewFullBtn.classList.toggle("is-active", state.viewMode === "full");
-    renderTree();
-  }
-
   function wireEvents() {
     if (dom.viewFocusBtn) dom.viewFocusBtn.addEventListener("click", () => updateViewMode("focus"));
     if (dom.viewFullBtn) dom.viewFullBtn.addEventListener("click", () => updateViewMode("full"));
 
-    if (dom.fitBtn) dom.fitBtn.addEventListener("click", fitToScreen);
-    if (dom.zoomInBtn) dom.zoomInBtn.addEventListener("click", () => setTreeScale(state.treeScale + 0.1));
-    if (dom.zoomOutBtn) dom.zoomOutBtn.addEventListener("click", () => setTreeScale(state.treeScale - 0.1));
-    if (dom.zoomResetBtn) dom.zoomResetBtn.addEventListener("click", () => setTreeScale(1));
-    if (dom.centerBtn) dom.centerBtn.addEventListener("click", () => centerOnNode(state.selectedId));
-
     if (dom.resetBtn) dom.resetBtn.addEventListener("click", () => {
-      state.focusAncDepth = 2;
-      state.focusDescDepth = 2;
-      setTreeScale(1);
-      renderTree();
-      centerOnNode(state.selectedId, true);
+      state.focusAncDepth = 1;
+      state.focusDescDepth = 1;
+      state.focusShowAllChildren = false;
+      state.expandedIds.clear();
+      state.branchOnly = false;
+      if (dom.branchOnlyBtn) dom.branchOnlyBtn.classList.remove("is-active");
+      updateViewMode("focus");
+    });
+
+    if (dom.centerBtn) dom.centerBtn.addEventListener("click", () => {
+      if (state.selectedId) renderDrawer(state.selectedId);
+    });
+
+    if (dom.branchOnlyBtn) dom.branchOnlyBtn.addEventListener("click", () => {
+      state.branchOnly = !state.branchOnly;
+      dom.branchOnlyBtn.classList.toggle("is-active", state.branchOnly);
+      renderFullTree();
+    });
+
+    if (dom.expandAllBtn) dom.expandAllBtn.addEventListener("click", () => {
+      state.data.people.forEach((p) => state.expandedIds.add(p.id));
+      renderFullTree();
+    });
+
+    if (dom.collapseAllBtn) dom.collapseAllBtn.addEventListener("click", () => {
+      state.expandedIds.clear();
+      renderFullTree();
+    });
+
+    if (dom.zoomInBtn) dom.zoomInBtn.addEventListener("click", () => {
+      state.fullScale = Math.min(1.4, state.fullScale + 0.1);
+      renderFullTree();
+    });
+    if (dom.zoomOutBtn) dom.zoomOutBtn.addEventListener("click", () => {
+      state.fullScale = Math.max(0.8, state.fullScale - 0.1);
+      renderFullTree();
+    });
+    if (dom.zoomResetBtn) dom.zoomResetBtn.addEventListener("click", () => {
+      state.fullScale = 1;
+      renderFullTree();
+    });
+
+    if (dom.fullList) {
+      dom.fullList.addEventListener("scroll", () => {
+        if (state.fullScale === 1) renderFullTree();
+      });
+    }
+
+    if (dom.filterRelation) dom.filterRelation.addEventListener("change", (e) => {
+      state.filters.relation = e.target.value;
+      renderFullTree();
+    });
+    if (dom.filterStatus) dom.filterStatus.addEventListener("change", (e) => {
+      state.filters.status = e.target.value;
+      renderFullTree();
+    });
+    if (dom.filterPhoto) dom.filterPhoto.addEventListener("change", (e) => {
+      state.filters.hasPhoto = e.target.checked;
+      renderFullTree();
+    });
+    if (dom.filterNote) dom.filterNote.addEventListener("change", (e) => {
+      state.filters.hasNote = e.target.checked;
+      renderFullTree();
     });
 
     if (dom.moreMenuBtn) dom.moreMenuBtn.addEventListener("click", () => toggleMenu(dom.moreMenuBtn, dom.moreMenuList));
@@ -820,7 +980,8 @@
     if (dom.toggleDebugBtn) dom.toggleDebugBtn.addEventListener("click", () => {
       state.debugMode = !state.debugMode;
       dom.toggleDebugBtn.classList.toggle("is-active", state.debugMode);
-      renderTree();
+      renderFocusView();
+      renderFullTree();
     });
 
     if (dom.mobileActionsBtn) dom.mobileActionsBtn.addEventListener("click", openActionsSheet);
@@ -828,16 +989,14 @@
 
     if (dom.actionFocus) dom.actionFocus.addEventListener("click", () => { updateViewMode("focus"); closeActionsSheet(); });
     if (dom.actionFull) dom.actionFull.addEventListener("click", () => { updateViewMode("full"); closeActionsSheet(); });
-    if (dom.actionFit) dom.actionFit.addEventListener("click", () => { fitToScreen(); closeActionsSheet(); });
-    if (dom.actionZoomIn) dom.actionZoomIn.addEventListener("click", () => { setTreeScale(state.treeScale + 0.1); closeActionsSheet(); });
-    if (dom.actionZoomOut) dom.actionZoomOut.addEventListener("click", () => { setTreeScale(state.treeScale - 0.1); closeActionsSheet(); });
-    if (dom.actionCenter) dom.actionCenter.addEventListener("click", () => { centerOnNode(state.selectedId); closeActionsSheet(); });
-    if (dom.actionReset) dom.actionReset.addEventListener("click", () => { setTreeScale(1); renderTree(); closeActionsSheet(); });
+    if (dom.actionCenter) dom.actionCenter.addEventListener("click", () => { if (state.selectedId) renderDrawer(state.selectedId); closeActionsSheet(); });
+    if (dom.actionReset) dom.actionReset.addEventListener("click", () => { state.fullScale = 1; renderFullTree(); closeActionsSheet(); });
     if (dom.actionExportPng) dom.actionExportPng.addEventListener("click", () => { exportToPng(); closeActionsSheet(); });
     if (dom.actionExportPdf) dom.actionExportPdf.addEventListener("click", () => { exportToPdf(); closeActionsSheet(); });
     if (dom.actionDebug) dom.actionDebug.addEventListener("click", () => {
       state.debugMode = !state.debugMode;
-      renderTree();
+      renderFocusView();
+      renderFullTree();
       closeActionsSheet();
     });
     if (dom.actionInsights) dom.actionInsights.addEventListener("click", () => {
@@ -918,16 +1077,30 @@
       setStatus("Memuatkan data...");
       const res = await fetch("./data.json", { cache: "no-store" });
       if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      const data = await res.json();
-      validateData(data);
+      const raw = await res.json();
+      if (!raw || !Array.isArray(raw.people) || !Array.isArray(raw.unions)) {
+        throw new Error("Invalid data.json schema (expected people[] and unions[])");
+      }
+      const data = {
+        ...raw,
+        people: raw.people.map(normalizePerson),
+        unions: raw.unions.map(normalizeUnion)
+      };
       state.data = data;
       buildIndex(data);
+      warnValidation(data);
       updateStats();
+
       state.selectedId = data.selfId || data.people?.[0]?.id || "";
-      highlightPath(state.selectedId);
+      if (window.location.hash) {
+        const hashId = window.location.hash.replace("#", "");
+        if (state.peopleById.has(hashId)) state.selectedId = hashId;
+      }
+
       updateViewMode("focus");
-      renderTree();
-      centerOnNode(state.selectedId, false);
+      renderFocusView();
+      renderFullTree();
+      setSelected(state.selectedId, { silent: true });
       setStatus("");
       updateExportAvailability();
       wireEvents();

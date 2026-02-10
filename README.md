@@ -1,27 +1,19 @@
-# KAMI Tree – UI/UX Improvements
+# KAMI Tree
 
-## Highlights
-- **Cleaner toolbar** with Focus/Full toggle, compact menus, and search hint (`/`).
-- **Focus Mode** default with Parents/Spouses/Children sections and quick expand.
-- **Full Tree** stays virtualized and fast with branch controls and breadcrumb chips.
-- **Search overlay on mobile** for easier typing.
-- **Action sheet on mobile** (menu icon) for View/Export/Insights.
-- **Detail drawer** (right desktop, bottom mobile) with quick jump chips.
-- **Insights panel** collapsible with compact legend.
-- **Export** via dropdown menu (PNG / PDF).
+## Features
+- Focus View with Parents / Spouses / Children cards and expand depth.
+- Full Tree view with virtualization, branch controls, filters, and zoom.
+- Insights: totals, gender (inferred), cucu/cicit, upcoming birthday.
+- Detail drawer with photo, note, age, and quick actions.
+- Export PNG / PDF with graceful fallback.
+- Mobile search overlay and actions sheet.
+
+## How to Use
+- Use search (`/`) to jump to a person.
+- Toggle Focus / Full Tree in the top bar.
+- Full Tree: use filters, Branch Only, Expand/Collapse, and Zoom.
+- Click a person to open the drawer, then choose Focus, Open Branch, or Copy Link.
 
 ## Keyboard Shortcuts
 - `/` focus search (mobile opens overlay)
 - `Esc` close drawer/search/menus
-
-## Components
-- `renderFocusView()` – focus hub
-- `renderFullTree()` – virtualized list + lazy expansion
-- `renderSearchResults()` – desktop dropdown + mobile overlay
-- `exportToPng()` / `exportToPdf()` – export current view
-
-## Mobile UX
-- Toolbar simplified, search overlay full-screen.
-- Drawer becomes bottom sheet.
-- Insights becomes bottom sheet.
-- Action sheet groups secondary controls.

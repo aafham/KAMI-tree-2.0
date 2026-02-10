@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260210-6" />
+  <link rel="stylesheet" href="styles.css?v=20260210-7" />
 </head>
 <body>
   <div class="app" id="app" data-theme="light">
@@ -29,16 +29,12 @@
           <button id="view-focus" class="btn small is-active" type="button">Focus</button>
           <button id="view-full" class="btn small ghost" type="button">Full Tree</button>
         </div>
-        <button id="fit-view" class="btn ghost small" type="button">Fit</button>
-        <button id="zoom-out" class="btn ghost small" type="button" aria-label="Zoom keluar">-</button>
-        <button id="zoom-in" class="btn ghost small" type="button" aria-label="Zoom masuk">+</button>
         <button id="reset-view" class="btn ghost small" type="button">Reset</button>
         <button id="toggle-insights" class="btn ghost small" type="button">Insights</button>
         <div class="menu">
           <button id="more-menu" class="btn ghost small" type="button" aria-haspopup="true" aria-expanded="false">More</button>
           <div id="more-menu-list" class="menu-list" hidden>
             <button id="center-selected" class="menu-item" type="button">Center</button>
-            <button id="zoom-reset" class="menu-item" type="button">Reset Zoom</button>
             <button id="export-png" class="menu-item" type="button">Export PNG</button>
             <button id="export-pdf" class="menu-item" type="button">Export PDF</button>
             <button id="toggle-debug" class="menu-item" type="button">Debug IDs</button>
@@ -50,10 +46,53 @@
 
     <main class="main">
       <section class="tree-area">
-        <div id="tree-viewport" class="tree-viewport" tabindex="0" aria-label="Paparan pokok keluarga">
-          <div id="tree-stage" class="tree-stage">
-            <svg id="tree-lines" class="tree-lines" aria-hidden="true"></svg>
-            <div id="tree-canvas" class="tree-canvas"></div>
+        <div id="focus-view" class="focus-view"></div>
+
+        <div id="full-view" class="full-view" hidden>
+          <div class="full-toolbar">
+            <div class="full-controls">
+              <label class="full-control">
+                Filter Relation
+                <select id="filter-relation">
+                  <option value="">Semua</option>
+                  <option value="anak">Anak</option>
+                  <option value="cucu">Cucu</option>
+                  <option value="cicit">Cicit</option>
+                  <option value="menantu">Menantu</option>
+                  <option value="tok">Tok</option>
+                  <option value="wan">Wan</option>
+                </select>
+              </label>
+              <label class="full-control">
+                Status
+                <select id="filter-status">
+                  <option value="">Semua</option>
+                  <option value="alive">Alive</option>
+                  <option value="deceased">Deceased</option>
+                </select>
+              </label>
+              <label class="full-check">
+                <input id="filter-photo" type="checkbox" /> Ada Foto
+              </label>
+              <label class="full-check">
+                <input id="filter-note" type="checkbox" /> Ada Nota
+              </label>
+            </div>
+            <div class="full-controls">
+              <button id="branch-only" class="btn ghost small" type="button">Branch Only</button>
+              <button id="expand-all" class="btn ghost small" type="button">Expand All</button>
+              <button id="collapse-all" class="btn ghost small" type="button">Collapse All</button>
+            </div>
+            <div class="full-zoom">
+              <button id="zoom-out" class="btn ghost small" type="button">-</button>
+              <button id="zoom-in" class="btn ghost small" type="button">+</button>
+              <button id="zoom-reset" class="btn ghost small" type="button">Reset Zoom</button>
+            </div>
+          </div>
+          <div id="full-tree-list" class="full-tree-list" tabindex="0">
+            <div id="full-tree-top"></div>
+            <div id="full-tree-inner" class="full-tree-inner"></div>
+            <div id="full-tree-bottom"></div>
           </div>
         </div>
 
@@ -84,6 +123,10 @@
               <span>Perempuan</span>
               <strong id="stat-female">0</strong>
             </div>
+            <div>
+              <span>Tidak diketahui</span>
+              <strong id="stat-unknown">0</strong>
+            </div>
           </div>
         </div>
         <div class="stat-card">
@@ -91,11 +134,11 @@
           <div class="stat-split">
             <div>
               <span>Cucu</span>
-              <strong id="stat-cucu">-</strong>
+              <strong id="stat-cucu">0</strong>
             </div>
             <div>
               <span>Cicit</span>
-              <strong id="stat-cicit">-</strong>
+              <strong id="stat-cicit">0</strong>
             </div>
           </div>
         </div>
@@ -124,15 +167,11 @@
       </div>
       <button id="drawer-close" class="btn ghost small" type="button" aria-label="Tutup">×</button>
     </div>
-    <div class="drawer-tabs">
-      <button class="chip">Parents</button>
-      <button class="chip">Spouses</button>
-      <button class="chip">Children</button>
-    </div>
-    <div id="drawer-body" class="drawer-body"></div>
+    <div class="drawer-body" id="drawer-body"></div>
     <div class="drawer-actions">
-      <button id="drawer-focus" class="btn ghost small" type="button">Focus View</button>
+      <button id="drawer-focus" class="btn ghost small" type="button">Set as Focus</button>
       <button id="drawer-cta" class="btn small" type="button">Open Branch</button>
+      <button id="drawer-link" class="btn ghost small" type="button">Copy Link</button>
     </div>
   </aside>
 
@@ -145,9 +184,6 @@
       <div class="actions-grid">
         <button id="action-focus" class="btn small" type="button">Focus View</button>
         <button id="action-full" class="btn ghost small" type="button">Full Tree</button>
-        <button id="action-fit" class="btn ghost small" type="button">Fit</button>
-        <button id="action-zoom-out" class="btn ghost small" type="button">Zoom -</button>
-        <button id="action-zoom-in" class="btn ghost small" type="button">Zoom +</button>
         <button id="action-center" class="btn ghost small" type="button">Center</button>
         <button id="action-reset" class="btn ghost small" type="button">Reset</button>
         <button id="action-export-png" class="btn ghost small" type="button">Export PNG</button>
@@ -187,6 +223,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=20260210-6" defer></script>
+  <script src="app.js?v=20260210-7" defer></script>
 </body>
 </html>
