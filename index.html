@@ -1,4 +1,4 @@
-<!doctype html>
+ï»¿<!doctype html>
 <html lang="ms">
 <head>
   <meta charset="utf-8" />
@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260210-5" />
+  <link rel="stylesheet" href="styles.css?v=20260210-6" />
 </head>
 <body>
   <div class="app" id="app" data-theme="light">
@@ -29,54 +29,31 @@
           <button id="view-focus" class="btn small is-active" type="button">Focus</button>
           <button id="view-full" class="btn small ghost" type="button">Full Tree</button>
         </div>
+        <button id="fit-view" class="btn ghost small" type="button">Fit</button>
+        <button id="zoom-out" class="btn ghost small" type="button" aria-label="Zoom keluar">-</button>
+        <button id="zoom-in" class="btn ghost small" type="button" aria-label="Zoom masuk">+</button>
+        <button id="reset-view" class="btn ghost small" type="button">Reset</button>
         <button id="toggle-insights" class="btn ghost small" type="button">Insights</button>
         <div class="menu">
-          <button id="view-menu" class="btn ghost small" type="button" aria-haspopup="true" aria-expanded="false">View ?</button>
-          <div id="view-menu-list" class="menu-list" hidden>
+          <button id="more-menu" class="btn ghost small" type="button" aria-haspopup="true" aria-expanded="false">More</button>
+          <div id="more-menu-list" class="menu-list" hidden>
             <button id="center-selected" class="menu-item" type="button">Center</button>
-            <button id="reset-view" class="menu-item" type="button">Reset</button>
             <button id="zoom-reset" class="menu-item" type="button">Reset Zoom</button>
-          </div>
-        </div>
-        <div class="menu">
-          <button id="export-menu" class="btn ghost small" type="button" aria-haspopup="true" aria-expanded="false">Export ?</button>
-          <div id="export-menu-list" class="menu-list" hidden>
             <button id="export-png" class="menu-item" type="button">Export PNG</button>
             <button id="export-pdf" class="menu-item" type="button">Export PDF</button>
+            <button id="toggle-debug" class="menu-item" type="button">Debug IDs</button>
           </div>
         </div>
-        <button id="mobile-actions" class="btn ghost small mobile-only" type="button" aria-label="Menu">?</button>
+        <button id="mobile-actions" class="btn ghost small mobile-only" type="button" aria-label="Menu">Menu</button>
       </div>
     </header>
 
     <main class="main">
       <section class="tree-area">
-        <div id="focus-view" class="focus-view"></div>
-
-        <div id="full-view" class="full-view" hidden>
-          <div class="full-toolbar">
-            <label class="full-control">
-              Generasi
-              <select id="full-gen">
-                <option value="1">Gen 1</option>
-                <option value="2">Gen 2</option>
-                <option value="3" selected>Gen 3</option>
-                <option value="4">Gen 4</option>
-              </select>
-            </label>
-            <button id="branch-only" class="btn ghost small" type="button">Branch Only</button>
-            <button id="expand-all" class="btn ghost small" type="button">Expand All</button>
-            <button id="collapse-all" class="btn ghost small" type="button">Collapse All</button>
-            <div id="breadcrumbs" class="breadcrumbs" aria-live="polite"></div>
-            <div class="full-zoom">
-              <button id="zoom-in" class="btn ghost small" type="button">+</button>
-              <button id="zoom-out" class="btn ghost small" type="button">-</button>
-            </div>
-          </div>
-          <div id="full-tree-list" class="full-tree-list" tabindex="0">
-            <div id="full-tree-top"></div>
-            <div id="full-tree-inner" class="full-tree-inner"></div>
-            <div id="full-tree-bottom"></div>
+        <div id="tree-viewport" class="tree-viewport" tabindex="0" aria-label="Paparan pokok keluarga">
+          <div id="tree-stage" class="tree-stage">
+            <svg id="tree-lines" class="tree-lines" aria-hidden="true"></svg>
+            <div id="tree-canvas" class="tree-canvas"></div>
           </div>
         </div>
 
@@ -145,7 +122,7 @@
         <span class="drawer-kicker">Profil</span>
         <h2 id="drawer-title">-</h2>
       </div>
-      <button id="drawer-close" class="btn ghost small" type="button" aria-label="Tutup">×</button>
+      <button id="drawer-close" class="btn ghost small" type="button" aria-label="Tutup">Ã—</button>
     </div>
     <div class="drawer-tabs">
       <button class="chip">Parents</button>
@@ -159,7 +136,7 @@
     </div>
   </aside>
 
-    <div id="actionsSheet" class="actions-sheet" hidden>
+  <div id="actionsSheet" class="actions-sheet" hidden>
     <div class="actions-card" role="dialog" aria-modal="true">
       <div class="actions-head">
         <h3>Aksi</h3>
@@ -168,15 +145,20 @@
       <div class="actions-grid">
         <button id="action-focus" class="btn small" type="button">Focus View</button>
         <button id="action-full" class="btn ghost small" type="button">Full Tree</button>
+        <button id="action-fit" class="btn ghost small" type="button">Fit</button>
+        <button id="action-zoom-out" class="btn ghost small" type="button">Zoom -</button>
+        <button id="action-zoom-in" class="btn ghost small" type="button">Zoom +</button>
         <button id="action-center" class="btn ghost small" type="button">Center</button>
         <button id="action-reset" class="btn ghost small" type="button">Reset</button>
         <button id="action-export-png" class="btn ghost small" type="button">Export PNG</button>
         <button id="action-export-pdf" class="btn ghost small" type="button">Export PDF</button>
+        <button id="action-debug" class="btn ghost small" type="button">Debug IDs</button>
         <button id="action-insights" class="btn ghost small" type="button">Insights</button>
       </div>
     </div>
   </div>
-<div id="searchOverlay" class="search-overlay" hidden>
+
+  <div id="searchOverlay" class="search-overlay" hidden>
     <div class="search-overlay-card" role="dialog" aria-modal="true">
       <div class="search-overlay-head">
         <h3>Carian</h3>
@@ -194,16 +176,17 @@
   <div id="fatalError" class="fatal-error" aria-live="polite" hidden>
     <div class="fatal-card" role="alertdialog" aria-modal="true" aria-labelledby="fatal-title">
       <h3 id="fatal-title">Ralat</h3>
-      <button id="fatalClose" class="fatal-close" aria-label="Tutup" type="button">×</button>
+      <button id="fatalClose" class="fatal-close" aria-label="Tutup" type="button">Ã—</button>
       <pre class="msg"></pre>
-      <button id="fatalReload" class="btn" type="button">Reload</button>
+      <div class="fatal-actions">
+        <button id="fatalCopy" class="btn ghost small" type="button">Copy Error</button>
+        <button id="fatalReload" class="btn" type="button">Reload</button>
+      </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <script src="app.js?v=20260210-5" defer></script>
+  <script src="app.js?v=20260210-6" defer></script>
 </body>
 </html>
-
-
